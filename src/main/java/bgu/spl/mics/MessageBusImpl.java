@@ -2,6 +2,7 @@ package bgu.spl.mics;
 import java.util.HashMap;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Iterator;
 
 /**
  * The {@link MessageBusImpl class is the implementation of the MessageBus interface.
@@ -11,11 +12,15 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class MessageBusImpl implements MessageBus {
 
 	private static MessageBusImpl instance = null;
-	public static HashMap<String, Queue<Event<?>>> queueHashMap;
+	public static HashMap<MicroService, ConcurrentLinkedQueue<Message>> microToMsg;
+	public static HashMap<Message, ConcurrentLinkedQueue<MicroService>> messageToSubs;
+
+
 
 	// Private constructor suppresses generation of a (public) default constructor
 	private MessageBusImpl() {
-		queueHashMap = new HashMap<String, Queue<Event<?>>>();
+		microToMsg = new HashMap<MicroService, ConcurrentLinkedQueue<Message>>();
+		messageToSubs = new HashMap<Message, ConcurrentLinkedQueue<MicroService>>();
 	}
 
 	public static MessageBusImpl getInstance() {
@@ -31,8 +36,8 @@ public class MessageBusImpl implements MessageBus {
 	 */
 	@Override
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
-		// TODO Auto-generated method stub
-
+		if(!isSubscribedToEvent(type, m))
+			messageToSubs.get(type).add(m);
 	}
 
 	/**
@@ -40,8 +45,7 @@ public class MessageBusImpl implements MessageBus {
 	 * @post:
 	 */
 	public <T> boolean isSubscribedToEvent(Class<? extends Event<T>> type, MicroService m) {
-		// TODO Auto-generated method stub
-		return false;
+		return(messageToSubs.get(type).contains(m));
 	}
 
 	/**
@@ -50,7 +54,8 @@ public class MessageBusImpl implements MessageBus {
 	 */
 	@Override
 	public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) {
-		// TODO Auto-generated method stub
+		if(!isSubscribedToBroadcast(type, m))
+			messageToSubs.get(type).add(m);
 
 	}
 
@@ -59,8 +64,7 @@ public class MessageBusImpl implements MessageBus {
 	 * @post:
 	 */
 	public boolean isSubscribedToBroadcast(Class<? extends Broadcast> type, MicroService m) {
-		// TODO Auto-generated method stub
-		return false;
+		return(messageToSubs.get(type).contains(m));
 	}
 
 	/**
@@ -91,8 +95,10 @@ public class MessageBusImpl implements MessageBus {
 	 */
 	@Override
 	public void sendBroadcast(Broadcast b) {
-		// TODO Auto-generated method stub
-
+		ConcurrentLinkedQueue<MicroService> q = messageToSubs.get(b);
+		Iterator<MicroService> iter = q.iterator();
+		while(iter.hasNext())
+			microToMsg.get(iter.next()).add(b);
 	}
 
 	/**
@@ -111,7 +117,6 @@ public class MessageBusImpl implements MessageBus {
 	 */
 	@Override
 	public <T> Future<T> sendEvent(Event<T> e) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -130,10 +135,8 @@ public class MessageBusImpl implements MessageBus {
 	 */
 	@Override
 	public void register(MicroService m) {
-		Queue<Event<?>> q = new ConcurrentLinkedQueue<Event<?>>();
-		queueHashMap.put(m.getName(), q);
-		// TODO Auto-generated method stub
-
+		ConcurrentLinkedQueue<Message> q = new ConcurrentLinkedQueue<Message>();
+		microToMsg.put(m, q);
 	}
 
 	/**
@@ -142,9 +145,8 @@ public class MessageBusImpl implements MessageBus {
 	 */
 
 	public boolean isRegistered(MicroService m) {
-		Queue microServiceQ = queueHashMap.get(m.getName());
+		ConcurrentLinkedQueue microServiceQ = microToMsg.get(m);
 		return(microServiceQ!=null);
-		// TODO Auto-generated method stub
 	}
 
 	/**
@@ -153,8 +155,15 @@ public class MessageBusImpl implements MessageBus {
 	 */
 	@Override
 	public void unregister(MicroService m) {
-		if(queueHashMap.get(m.getName())!=null){
-			queueHashMap.remove(m.getName());
+		if(microToMsg.get(m.getName())!=null){
+			microToMsg.remove(m.getName());
+		}
+
+		for (Queue<MicroService> i : messageToSubs.values()) {
+			for(MicroService ms: i){
+
+			}
+
 		}
 		// TODO Auto-generated method stub
 
@@ -166,15 +175,15 @@ public class MessageBusImpl implements MessageBus {
 	 */
 
 	public boolean isUnregistered(MicroService m) {
-		Queue microServiceQ = queueHashMap.get(m.getName());
+		ConcurrentLinkedQueue microServiceQ = microToMsg.get(m);
 		return(microServiceQ==null);
-		// TODO Auto-generated method stub
 	}
 
 	@Override
 	public Message awaitMessage(MicroService m) throws InterruptedException {
-		// TODO Auto-generated method stub
-		return null;
+		if(microToMsg.get(m).isEmpty())
+			wait();
+		return microToMsg.get(m).poll();
 	}
 
 

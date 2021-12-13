@@ -1,5 +1,8 @@
 package bgu.spl.mics;
 
+import java.util.HashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 /**
  * The MicroService is an abstract class that any micro-service in the system
  * must extend. The abstract MicroService class is responsible to get and
@@ -22,6 +25,9 @@ public abstract class MicroService implements Runnable {
 
     private boolean terminated = false;
     private final String name;
+    MessageBus msb = MessageBusImpl.getInstance();
+    public static HashMap<Class<? extends Message>, Callback<?>> msgToCalls;
+
 
     /**
      * @param name the micro-service name (used mainly for debugging purposes -
@@ -53,6 +59,8 @@ public abstract class MicroService implements Runnable {
      *                 queue.
      */
     protected final <T, E extends Event<T>> void subscribeEvent(Class<E> type, Callback<E> callback) {
+        msb.subscribeEvent(type, this);
+        msgToCalls.put(type, callback);
         //TODO: implement this.
     }
 
@@ -77,6 +85,8 @@ public abstract class MicroService implements Runnable {
      *                 queue.
      */
     protected final <B extends Broadcast> void subscribeBroadcast(Class<B> type, Callback<B> callback) {
+        msb.subscribeBroadcast(type, this);
+        msgToCalls.put(type, callback);
         //TODO: implement this.
     }
 
@@ -93,8 +103,8 @@ public abstract class MicroService implements Runnable {
      * 	       			null in case no micro-service has subscribed to {@code e.getClass()}.
      */
     protected final <T> Future<T> sendEvent(Event<T> e) {
-        //TODO: implement this.
-        return null; //TODO: delete this line :)
+        return msb.sendEvent(e);
+
     }
 
     /**
@@ -118,7 +128,7 @@ public abstract class MicroService implements Runnable {
      *               {@code e}.
      */
     protected final <T> void complete(Event<T> e, T result) {
-        //TODO: implement this.
+
     }
 
     /**
@@ -148,10 +158,20 @@ public abstract class MicroService implements Runnable {
      */
     @Override
     public final void run() {
+        msb.register(this);
         initialize();
+        Message msg = null;
         while (!terminated) {
-            System.out.println("NOT IMPLEMENTED!!!"); //TODO: you should delete this line :)
+            try {
+                msg = msb.awaitMessage(this);
+            }
+            catch (InterruptedException e){
+                e.printStackTrace();
+            }
+            Callback cb =msgToCalls.get(msg);
+            cb.call(msg);
         }
+
     }
 
 }
