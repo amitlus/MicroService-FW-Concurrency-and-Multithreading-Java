@@ -1,6 +1,13 @@
 package bgu.spl.mics.application.services;
 
+import bgu.spl.mics.Event;
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.callbacks.PublishConferenceBroadcastCall;
+import bgu.spl.mics.application.messages.*;
+import bgu.spl.mics.application.objects.Model;
+import bgu.spl.mics.application.objects.Student;
+
+import java.util.ArrayList;
 
 /**
  * Student is responsible for sending the {@link TrainModelEvent},
@@ -12,14 +19,24 @@ import bgu.spl.mics.MicroService;
  * You MAY change constructor signatures and even add new public constructors.
  */
 public class StudentService extends MicroService {
-    public StudentService(String name) {
-        super("Change_This_Name");
-        // TODO Implement this
+
+    Student student;
+    public StudentService(String name, Student student) {
+        super(name);
+        this.student = student;
     }
 
     @Override
     protected void initialize() {
-        // TODO Implement this
+
+        subscribeBroadcast(PublishConferenceBroadcast.class, (PublishConferenceBroadcast(b)->{}));
+        //ITERATE THROUGH ALL THE MODELS AND CREATE 3 EVENTS FOR EACH- TRAIN, TEST, PUBLISH & SEND THEM
+        ArrayList<Model> listOfModels = student.getListOfModels();
+        for(int i=0; i<listOfModels.size(); i++){
+            sendEvent(new TrainModelEvent(listOfModels.get(i)));
+
+        }
+
 
     }
 }

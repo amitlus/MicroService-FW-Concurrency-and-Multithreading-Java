@@ -1,6 +1,15 @@
 package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.messages.TestModelEvent;
+import bgu.spl.mics.application.messages.TickBroadcast;
+import bgu.spl.mics.application.messages.TrainModelEvent;
+import bgu.spl.mics.application.objects.Data;
+import bgu.spl.mics.application.objects.DataBatch;
+import bgu.spl.mics.application.objects.GPU;
+import bgu.spl.mics.application.objects.Model;
+
+import java.util.ArrayList;
 
 /**
  * GPU service is responsible for handling the
@@ -13,13 +22,22 @@ import bgu.spl.mics.MicroService;
  */
 public class GPUService extends MicroService {
 
-    public GPUService(String name) {
+    GPU gpu;
+    public GPUService(String name, GPU gpu) {
         super("Change_This_Name");
-        // TODO Implement this
+        this.gpu = gpu;
     }
 
-    @Override
+
     protected void initialize() {
+        subscribeEvent(TrainModelEvent.class, (TrainModelEvent)->{gpu.makeDataList();
+        gpu.sendDataBatches();});//Subscribe to TrainModelEvents
+        subscribeBroadcast(TickBroadcast.class, (TickBroadcast)->{gpu.updateTick();});
+
+
+
+
+        //THEN WE NEED TO TAKE ALL EVENTS FROM OUR QUEUE AND CALL THEIR CALLBACK
         // TODO Implement this
 
     }

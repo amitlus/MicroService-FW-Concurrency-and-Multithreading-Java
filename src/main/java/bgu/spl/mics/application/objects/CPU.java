@@ -11,9 +11,9 @@ public class CPU {
 
     private int cores;
     private Collection<DataBatch> data;
-    private Cluster cluster;
+    private Cluster cluster = Cluster.getInstance();;
 
-    public CPU (int cores, Collection<DataBatch> data, Cluster cluster){
+    public CPU (int cores, Cluster cluster){
         this.cores = cores;
         this.cluster = cluster;
         this.data = data;
@@ -27,4 +27,6 @@ public class CPU {
         return data;
     }
 
+    public void updateTick() {
+    }
 }

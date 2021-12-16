@@ -1,7 +1,8 @@
 package bgu.spl.mics;
 
 import java.util.HashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.*;
+
 
 /**
  * The MicroService is an abstract class that any micro-service in the system
@@ -25,8 +26,9 @@ public abstract class MicroService implements Runnable {
 
     private boolean terminated = false;
     private final String name;
-    MessageBus msb = MessageBusImpl.getInstance();
-    public static HashMap<Class<? extends Message>, Callback<?>> msgToCalls;
+    public MessageBus msb = MessageBusImpl.getInstance();
+    ConcurrentHashMap<Class<? extends Message>, Callback<?>> msgToCalls = new ConcurrentHashMap<>();
+
 
 
     /**
@@ -61,7 +63,6 @@ public abstract class MicroService implements Runnable {
     protected final <T, E extends Event<T>> void subscribeEvent(Class<E> type, Callback<E> callback) {
         msb.subscribeEvent(type, this);
         msgToCalls.put(type, callback);
-        //TODO: implement this.
     }
 
     /**
@@ -87,7 +88,6 @@ public abstract class MicroService implements Runnable {
     protected final <B extends Broadcast> void subscribeBroadcast(Class<B> type, Callback<B> callback) {
         msb.subscribeBroadcast(type, this);
         msgToCalls.put(type, callback);
-        //TODO: implement this.
     }
 
     /**
@@ -114,7 +114,7 @@ public abstract class MicroService implements Runnable {
      * @param b The broadcast message to send
      */
     protected final void sendBroadcast(Broadcast b) {
-        //TODO: implement this.
+        msb.sendBroadcast(b);
     }
 
     /**
@@ -128,7 +128,7 @@ public abstract class MicroService implements Runnable {
      *               {@code e}.
      */
     protected final <T> void complete(Event<T> e, T result) {
-
+        msb.complete(e,result);
     }
 
     /**
@@ -164,14 +164,12 @@ public abstract class MicroService implements Runnable {
         while (!terminated) {
             try {
                 msg = msb.awaitMessage(this);
-            }
-            catch (InterruptedException e){
+                Callback action = msgToCalls.get(msg);
+                if (action != null)
+                    action.call(msg);
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            Callback cb =msgToCalls.get(msg);
-            cb.call(msg);
         }
-
     }
-
 }

@@ -1,8 +1,10 @@
 package bgu.spl.mics;
-import java.util.HashMap;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.Iterator;
+import java.util.concurrent.*;
+import java.util.*;
+import java.util.concurrent.LinkedBlockingQueue;
+
+/** NEED TO IMPLEMENT ROUND-ROBIN PATTERN */
 
 /**
  * The {@link MessageBusImpl class is the implementation of the MessageBus interface.
@@ -12,15 +14,16 @@ import java.util.Iterator;
 public class MessageBusImpl implements MessageBus {
 
 	private static MessageBusImpl instance = null;
-	public static HashMap<MicroService, ConcurrentLinkedQueue<Message>> microToMsg;
-	public static HashMap<Message, ConcurrentLinkedQueue<MicroService>> messageToSubs;
+	public static ConcurrentHashMap<MicroService, BlockingQueue<Message>> microToMsg = new ConcurrentHashMap<>();
+	public static ConcurrentHashMap<Class<? extends Message>, BlockingQueue<MicroService>> messageToSubs = new ConcurrentHashMap<>();
+	private ConcurrentHashMap<Event<?>,Future> eventToFuture = new ConcurrentHashMap<>();
 
 
 
 	// Private constructor suppresses generation of a (public) default constructor
 	private MessageBusImpl() {
-		microToMsg = new HashMap<MicroService, ConcurrentLinkedQueue<Message>>();
-		messageToSubs = new HashMap<Message, ConcurrentLinkedQueue<MicroService>>();
+		microToMsg = new ConcurrentHashMap<MicroService, BlockingQueue<Message>>();
+		messageToSubs = new ConcurrentHashMap<Class<? extends Message>, BlockingQueue<MicroService>>();
 	}
 
 	public static MessageBusImpl getInstance() {
@@ -34,9 +37,13 @@ public class MessageBusImpl implements MessageBus {
 	 * @pre: none
 	 * @post: isSubscribedToEvent(@ param type, @ param m) == true
 	 */
-	@Override
+
+	//BACK AND FIX THIS
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
-		if(!isSubscribedToEvent(type, m))
+		Class<? extends Class> t = type.getClass();
+		if(!messageToSubs.containsKey(type))
+			messageToSubs.put(type, new LinkedBlockingQueue<MicroService>());
+		else
 			messageToSubs.get(type).add(m);
 	}
 
@@ -52,7 +59,8 @@ public class MessageBusImpl implements MessageBus {
 	 * @pre: none
 	 * @post: isSubscribedToBroadcast(@ param type, @ param m) == true
 	 */
-	@Override
+
+	//BACK AND FIX THIS
 	public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) {
 		if(!isSubscribedToBroadcast(type, m))
 			messageToSubs.get(type).add(m);
@@ -72,9 +80,11 @@ public class MessageBusImpl implements MessageBus {
 	 * @post: getFuture(@ param e).get() == @param result
 	 */
 	@Override
-	public <T> void complete(Event<T> e, T result) {
-		// TODO Auto-generated method stub
-
+	public synchronized  <T> void complete(Event<T> e, T result) {
+		if (eventToFuture.containsKey(e))
+			eventToFuture.get(e).resolve(result);
+		else
+			throw new IllegalArgumentException("Event was not added to Event-Future hash map");
 	}
 
 	/**
@@ -93,12 +103,15 @@ public class MessageBusImpl implements MessageBus {
 	 * @post: for each microService m (isSubscribedToBroadcast(@param b.getClass(), m) == true)
 	 * b.equals(awaitMessage(m))
 	 */
-	@Override
+
 	public void sendBroadcast(Broadcast b) {
-		ConcurrentLinkedQueue<MicroService> q = messageToSubs.get(b);
-		Iterator<MicroService> iter = q.iterator();
-		while(iter.hasNext())
-			microToMsg.get(iter.next()).add(b);
+		BlockingQueue<MicroService> q = messageToSubs.get(b);//If empty he waits (That's how LinkedBlockingQueue works)
+		//Locks messageToSubs queue
+		synchronized (q){
+			Iterator<MicroService> iter = q.iterator();
+			while (iter.hasNext())
+				microToMsg.get(iter.next()).add(b);
+		}
 	}
 
 	/**
@@ -115,10 +128,26 @@ public class MessageBusImpl implements MessageBus {
 	 * @post: for each microService m (isSubscribedToEvent(@param b.getClass(), m) == true)
 	 * e.equals(awaitMessage(m))
 	 */
-	@Override
+
+	//It's already thread safe because the data structure is thread-safe
 	public <T> Future<T> sendEvent(Event<T> e) {
-		return null;
-	}
+
+		//Check existence of handlers queue of the Event type
+		//Checking if there is a microservice who can process the event
+			if (( !messageToSubs.containsKey(e.getClass()))  || messageToSubs.get(e.getClass())==null || (messageToSubs.get(e.getClass()).isEmpty()))
+				return null;
+			else {
+				Future<T> future = new Future<T>();
+				if(eventToFuture.put(e, future)!=null)
+					future = eventToFuture.get(e);
+				MicroService handler = messageToSubs.get(e.getClass()).peek(); //Takes the head of the queue without removing it. Return null if empty
+				//It won't return null because we already ensure that the queue is not empty
+				microToMsg.get(handler).add(e); // adding the event to the handler message queue
+				return future;
+			}
+		}
+
+
 
 	/**
 	 * @pre: none
@@ -135,7 +164,7 @@ public class MessageBusImpl implements MessageBus {
 	 */
 	@Override
 	public void register(MicroService m) {
-		ConcurrentLinkedQueue<Message> q = new ConcurrentLinkedQueue<Message>();
+		BlockingQueue<Message> q = new LinkedBlockingQueue<Message>();
 		microToMsg.put(m, q);
 	}
 
@@ -145,7 +174,7 @@ public class MessageBusImpl implements MessageBus {
 	 */
 
 	public boolean isRegistered(MicroService m) {
-		ConcurrentLinkedQueue microServiceQ = microToMsg.get(m);
+		BlockingQueue microServiceQ = microToMsg.get(m);
 		return(microServiceQ!=null);
 	}
 
@@ -153,21 +182,31 @@ public class MessageBusImpl implements MessageBus {
 	 * @pre: isRegistered(@ param m) == true
 	 * @post: isRegistered(@ param m) == false
 	 */
-	@Override
+
+	//It's already thread safe because the data structure is thread-safe
 	public void unregister(MicroService m) {
+		//Remove m's queue
 		if(microToMsg.get(m.getName())!=null){
 			microToMsg.remove(m.getName());
 		}
 
-		for (Queue<MicroService> i : messageToSubs.values()) {
-			for(MicroService ms: i){
-
+		//Removes all the instances of m from all the queues he subscribed to
+		for (Map.Entry mapElement : messageToSubs.entrySet()) {
+			Iterator<MicroService> listOfMicroServices = ((LinkedBlockingQueue) mapElement.getValue()).iterator();
+			boolean removed = false;
+			MicroService check = null;
+			while (listOfMicroServices.hasNext() && !removed) {
+				check = listOfMicroServices.next();
+				if (check == m) {
+					removed = true;
+					((LinkedBlockingQueue<?>) mapElement.getValue()).remove(check);
+				}
 			}
-
 		}
+	}
 		// TODO Auto-generated method stub
 
-	}
+
 
 	/**
 	 * @pre:
@@ -175,16 +214,19 @@ public class MessageBusImpl implements MessageBus {
 	 */
 
 	public boolean isUnregistered(MicroService m) {
-		ConcurrentLinkedQueue microServiceQ = microToMsg.get(m);
+		BlockingQueue microServiceQ = microToMsg.get(m);
 		return(microServiceQ==null);
 	}
 
 	@Override
 	public Message awaitMessage(MicroService m) throws InterruptedException {
-		if(microToMsg.get(m).isEmpty())
-			wait();
-		return microToMsg.get(m).poll();
-	}
+		//If there is a queue for this microservice, return a Message from it, and if it's empty, wait until a Message inserted
+		if(!(microToMsg.get(m)==null))
+			return microToMsg.get(m).take();
+		else
+			throw new IllegalArgumentException("m not registered");
+
+}
 
 
 }
