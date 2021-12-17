@@ -1,6 +1,7 @@
 package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.messages.TerminateBroadcast;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.objects.CPU;
 
@@ -19,10 +20,11 @@ public class CPUService extends MicroService {
         // TODO Implement this
     }
 
+    //ONLY NEED TO UPDATE THE TIME FOR THE CPU
     @Override
     protected void initialize() {
         subscribeBroadcast(TickBroadcast.class, (TickBroadcast)->{cpu.updateTick();});
-
+        subscribeBroadcast(TerminateBroadcast.class, (TerminateBroadcast)->{cpu.terminate();});
 
     }
 }

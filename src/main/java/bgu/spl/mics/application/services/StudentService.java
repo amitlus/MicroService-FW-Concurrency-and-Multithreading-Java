@@ -2,7 +2,6 @@ package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.Event;
 import bgu.spl.mics.MicroService;
-import bgu.spl.mics.application.callbacks.PublishConferenceBroadcastCall;
 import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.application.objects.Model;
 import bgu.spl.mics.application.objects.Student;
@@ -28,13 +27,38 @@ public class StudentService extends MicroService {
 
     @Override
     protected void initialize() {
-
-        subscribeBroadcast(PublishConferenceBroadcast.class, (PublishConferenceBroadcast(b)->{}));
-        //ITERATE THROUGH ALL THE MODELS AND CREATE 3 EVENTS FOR EACH- TRAIN, TEST, PUBLISH & SEND THEM
         ArrayList<Model> listOfModels = student.getListOfModels();
+
+        subscribeBroadcast(TickBroadcast.class, (TickBroadcast)->{student.updateTick();
+
+        if(student.listOfModels.get(0).getStatus()== Model.Status.PreTrained)
+            sendEvent(new TrainModelEvent(listOfModels.get(0)));
+        else if(student.listOfModels.get(0).getStatus()== Model.Status.Trained)
+            sendEvent(new TestModelEvent());
+        else if(student.listOfModels.get(0).getStatus()== Model.Status.Tested)
+            sendEvent(new PublishResultsEvent());
+
+        }
+
+
+
+
+            });
+
+
+
+        subscribeBroadcast(TerminateBroadcast.class, (TerminateBroadcast)->{student.terminate();});
+
+        subscribeBroadcast(PublishConferenceBroadcast.class, (PublishConferenceBroadcast)->{student.updatePublications();
+            student.updatePapersRead();
+        });
+
         for(int i=0; i<listOfModels.size(); i++){
             sendEvent(new TrainModelEvent(listOfModels.get(i)));
 
+            sendEvent(new TestModelEvent());
+
+            sendEvent(new PublishResultsEvent());
         }
 
 

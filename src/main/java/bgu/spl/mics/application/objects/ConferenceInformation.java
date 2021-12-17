@@ -1,5 +1,7 @@
 package bgu.spl.mics.application.objects;
 
+import java.util.ArrayList;
+
 /**
  * Passive object representing information on a conference.
  * Add fields and methods to this class as you see fit (including public methods and constructors).
@@ -8,10 +10,15 @@ public class ConferenceInformation {
 
     private String name;
     private int date;
+    ArrayList<String> successfulModels;
 
     public ConferenceInformation(String name, int date){
         this.name = name;
         this.date = date;
+    }
+
+    public void addSuccessfulModel(String modelName){
+        successfulModels.add(modelName);
     }
 
     public String getName(){

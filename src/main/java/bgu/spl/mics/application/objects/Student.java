@@ -10,6 +10,15 @@ import java.util.ArrayList;
  * Add fields and methods to this class as you see fit (including public methods and constructors).
  */
 public class Student {
+    public void updateTick() {
+    }
+
+    public void updatePublications() {
+    }
+
+    public void updatePapersRead() {
+    }
+
     /**
      * Enum representing the Degree the student is studying for.
      */

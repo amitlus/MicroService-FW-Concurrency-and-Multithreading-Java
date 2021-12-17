@@ -1,5 +1,6 @@
 package bgu.spl.mics.application.objects;
-
+import java.util.concurrent.LinkedBlockingQueue;
+import bgu.spl.mics.MessageBusImpl;
 
 import java.util.ArrayList;
 
@@ -12,43 +13,41 @@ import java.util.ArrayList;
  */
 public class Cluster {
 
-	private static ArrayList<DataBatch> dataToProcess;
-	private static ArrayList<DataBatch> dataProcessed;
-	private static Cluster instance = null;
+	private static LinkedBlockingQueue<DataBatch> dataToProcess;
+//	private static LinkedBlockingQueue<DataBatch> dataProcessed;
 
-	private Cluster(){
-		this.dataToProcess = new ArrayList<DataBatch>();
-		this.dataProcessed = new ArrayList<DataBatch>();
+	private static class SingletonHolder {
+		private static Cluster instance = new Cluster();
+	}
+
+	private Cluster() {
+		this.dataToProcess = new LinkedBlockingQueue<DataBatch>();
 	}
 
 	/**
-     * Retrieves the single instance of this class.
-     */
+	 * Retrieves the single instance of this class.
+	 */
 	public static Cluster getInstance() {
-		if (instance == null)
-			instance = new Cluster();
-		return instance;
+		return Cluster.SingletonHolder.instance;
 	}
 
 
-	public static ArrayList<DataBatch> getDataToProcessList(){
+	public LinkedBlockingQueue<DataBatch> getDataToProcessList() {
 		return dataToProcess;
 	}
 
-	public static ArrayList<DataBatch> getDataProcessedList(){
-		return dataProcessed;
-	}
-
-	public static DataBatch getUnprocessedDataBatch(){
-		DataBatch dataBatch = dataToProcess.get(0);
-		dataToProcess.remove(0);
+	//USED BY THE CPU TO GET DATA BATCH TO PROCESS
+	public DataBatch getUnprocessedDataBatch() {
+		DataBatch dataBatch = null;
+		int size = dataToProcess.size();
+		if (size > 0) {
+			dataBatch = dataToProcess.remove();
+		}
 		return dataBatch;
 	}
 
-	public static DataBatch getProcessedData(){
-		DataBatch dataBatch = dataProcessed.get(0);
-		dataProcessed.remove(0);
-		return dataBatch;
+	//SENDS BACK THE PROCESSED DATA BATCH TO ITS SOURCE GPU
+	public void sendProcessedDataBatch(GPU gpu, DataBatch dataBatch) {
+		gpu.getProcessedDataList().add(dataBatch);
 	}
-
 }

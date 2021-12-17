@@ -1,6 +1,7 @@
 package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.messages.TerminateBroadcast;
 import bgu.spl.mics.application.messages.TestModelEvent;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.messages.TrainModelEvent;
@@ -30,15 +31,40 @@ public class GPUService extends MicroService {
 
 
     protected void initialize() {
-        subscribeEvent(TrainModelEvent.class, (TrainModelEvent)->{gpu.makeDataList();
-        gpu.sendDataBatches();});//Subscribe to TrainModelEvents
-        subscribeBroadcast(TickBroadcast.class, (TickBroadcast)->{gpu.updateTick();});
+
+        subscribeBroadcast(TickBroadcast.class, (TickBroadcast)->{gpu.updateTick();
+        if(gpu.isCounting){
+            if (gpu.getProcessedDataList().peek().getTrainingTimeLeft() > 0)
+                gpu.trainDataBatch(gpu.getProcessedDataList().peek());
+            if (gpu.getProcessedDataList().peek().getTrainingTimeLeft() == 0) {
+                gpu.getTrainedDataList().add(gpu.getProcessedDataList().peek());
+            }
+        }
+
+        else {
+            while(!gpu.getFastMessages().isEmpty()){
+                gpu.getFastMessages().pop. //CALL IT'S "LAMBDA" EXPRESSION
+        }
+        }
+
+        if(gpu.getModel().getStatus() == Model.Status.Trained) {
+
+        }
+
+        if(gpu.getModel().getStatus() == Model.Status.Tested) {
+
+        }
+
+        });
+
+        subscribeBroadcast(TerminateBroadcast .class, (TerminateBroadcast)->{gpu.terminate();});
+
+        subscribeEvent(TrainModelEvent.class, (TrainModelEvent)->
+        {gpu.makeDataList(); gpu.sendDataBatch();});
+
+        subscribeEvent(TestModelEvent.class, (TestModelEvent)->{gpu.Test();});
 
 
-
-
-        //THEN WE NEED TO TAKE ALL EVENTS FROM OUR QUEUE AND CALL THEIR CALLBACK
-        // TODO Implement this
 
     }
 }

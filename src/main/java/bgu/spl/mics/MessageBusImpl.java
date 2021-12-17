@@ -13,12 +13,13 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class MessageBusImpl implements MessageBus {
 
-	private static MessageBusImpl instance = null;
 	public static ConcurrentHashMap<MicroService, BlockingQueue<Message>> microToMsg = new ConcurrentHashMap<>();
 	public static ConcurrentHashMap<Class<? extends Message>, BlockingQueue<MicroService>> messageToSubs = new ConcurrentHashMap<>();
 	private ConcurrentHashMap<Event<?>,Future> eventToFuture = new ConcurrentHashMap<>();
 
-
+	private static class SingletonHolder{
+		private static MessageBusImpl instance = new MessageBusImpl();
+	}
 
 	// Private constructor suppresses generation of a (public) default constructor
 	private MessageBusImpl() {
@@ -27,9 +28,7 @@ public class MessageBusImpl implements MessageBus {
 	}
 
 	public static MessageBusImpl getInstance() {
-		if (instance == null)
-			instance = new MessageBusImpl();
-		return instance;
+		return SingletonHolder.instance;
 	}
 
 
