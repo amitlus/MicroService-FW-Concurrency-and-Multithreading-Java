@@ -36,15 +36,6 @@ public class Cluster {
 		return dataToProcess;
 	}
 
-	//USED BY THE CPU TO GET DATA BATCH TO PROCESS
-	public DataBatch getUnprocessedDataBatch() {
-		DataBatch dataBatch = null;
-		int size = dataToProcess.size();
-		if (size > 0) {
-			dataBatch = dataToProcess.remove();
-		}
-		return dataBatch;
-	}
 
 	//SENDS BACK THE PROCESSED DATA BATCH TO ITS SOURCE GPU
 	public void sendProcessedDataBatch(GPU gpu, DataBatch dataBatch) {

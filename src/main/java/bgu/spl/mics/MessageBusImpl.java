@@ -17,6 +17,10 @@ public class MessageBusImpl implements MessageBus {
 	public static ConcurrentHashMap<Class<? extends Message>, BlockingQueue<MicroService>> messageToSubs = new ConcurrentHashMap<>();
 	private ConcurrentHashMap<Event<?>,Future> eventToFuture = new ConcurrentHashMap<>();
 
+	public static ConcurrentHashMap<MicroService, BlockingQueue<Message>> getMicroToMsg() {
+		return microToMsg;
+	}
+
 	private static class SingletonHolder{
 		private static MessageBusImpl instance = new MessageBusImpl();
 	}

@@ -6,7 +6,7 @@ import bgu.spl.mics.MessageBus;
 import bgu.spl.mics.MessageBusImpl;
 import bgu.spl.mics.application.objects.Cluster;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.Random
+import java.util.Random;
 
 
 import java.util.ArrayList;
@@ -18,7 +18,6 @@ import java.util.ArrayList;
  */
 public class GPU {
 
-
     /**
      * Enum representing the type of the GPU.
      */
@@ -28,18 +27,19 @@ public class GPU {
     LinkedBlockingQueue<DataBatch> processedDataList;
     LinkedBlockingQueue<DataBatch> TrainedDataList;
 
-    LinkedBlockingQueue<Class<? extends Message>> fastMessages;
-    LinkedBlockingQueue<Event<?>> trainEvents;
+    LinkedBlockingQueue<Message> fastMessages;
+    LinkedBlockingQueue<Message> trainEvents;
 
 
     private Type type;
     private Model model;
+    private Cluster cluster;
 
-    public Cluster cluster;
-    public MessageBus msb = MessageBusImpl.getInstance();
+    private MessageBusImpl msb = MessageBusImpl.getInstance();
     private int vramSpace;
-    int currentTick;
-    int trainingTime;
+    private int currentTick;
+    private int trainingTime;
+
 
     public boolean isCounting =  false;
 
@@ -81,6 +81,18 @@ public class GPU {
         currentTick++;
     }
 
+    public void setCounting(boolean counting) {
+        isCounting = counting;
+    }
+
+    public MessageBusImpl getMsb() {
+        return msb;
+    }
+
+    public Cluster getCluster() {
+        return cluster;
+    }
+
     public LinkedBlockingQueue<DataBatch> getProcessedDataList(){
         return processedDataList;
     }
@@ -89,11 +101,11 @@ public class GPU {
         return TrainedDataList;
     }
 
-    public LinkedBlockingQueue<Class<? extends Message>> getFastMessages(){
+    public LinkedBlockingQueue<Message> getFastMessages(){
         return fastMessages;
     }
 
-    public LinkedBlockingQueue<Event<?>> getTrainEvents(){
+    public LinkedBlockingQueue<Message> getTrainEvents(){
         return trainEvents;
     }
 
@@ -135,9 +147,10 @@ public class GPU {
             dataBatch.decreaseTrainingTimeLeft();
             if (dataBatch.getTrainingTimeLeft() == 0)
                 //AFTER WE FINISH TRAINING A DATA BATCH, WE CHECK IF WE FINISHED TRAINING ALL THE MODEL'S DATA BATCHES
-                if (TrainedDataList.size() == dataBatch.dataParts)
+                if (TrainedDataList.size() == dataBatch.dataParts) {
                     model.setStatus(Model.Status.Trained);
-
+                    isCounting = false;
+                }
         }
 
         public Model getModel () {
@@ -146,6 +159,13 @@ public class GPU {
 
         public Type getType () {
             return type;
+        }
+
+        public boolean isCounting() {
+            return isCounting;
+        }
+
+        public void terminate() {
         }
 
     }

@@ -33,18 +33,14 @@ public class StudentService extends MicroService {
 
         if(student.listOfModels.get(0).getStatus()== Model.Status.PreTrained)
             sendEvent(new TrainModelEvent(listOfModels.get(0)));
+
         else if(student.listOfModels.get(0).getStatus()== Model.Status.Trained)
             sendEvent(new TestModelEvent());
+
         else if(student.listOfModels.get(0).getStatus()== Model.Status.Tested)
             sendEvent(new PublishResultsEvent());
 
-        }
-
-
-
-
-            });
-
+         });
 
 
         subscribeBroadcast(TerminateBroadcast.class, (TerminateBroadcast)->{student.terminate();});
@@ -53,13 +49,6 @@ public class StudentService extends MicroService {
             student.updatePapersRead();
         });
 
-        for(int i=0; i<listOfModels.size(); i++){
-            sendEvent(new TrainModelEvent(listOfModels.get(i)));
-
-            sendEvent(new TestModelEvent());
-
-            sendEvent(new PublishResultsEvent());
-        }
 
 
     }

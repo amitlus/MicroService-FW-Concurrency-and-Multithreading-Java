@@ -23,7 +23,14 @@ public class CPUService extends MicroService {
     //ONLY NEED TO UPDATE THE TIME FOR THE CPU
     @Override
     protected void initialize() {
-        subscribeBroadcast(TickBroadcast.class, (TickBroadcast)->{cpu.updateTick();});
+        subscribeBroadcast(TickBroadcast.class, (TickBroadcast)->{cpu.updateTick();
+        if(cpu.isCounting())
+            cpu.processCurrentBatch();
+        //AFTER WE FINISH PROCESS 1 BATCH, TRY TO TAKE ANOTHER BATCH WITHOUT WAITING FOR ANOTHER TICK
+        if(!cpu.isCounting())
+            cpu.getUnprocessedDataBatch();
+        });
+
         subscribeBroadcast(TerminateBroadcast.class, (TerminateBroadcast)->{cpu.terminate();});
 
     }

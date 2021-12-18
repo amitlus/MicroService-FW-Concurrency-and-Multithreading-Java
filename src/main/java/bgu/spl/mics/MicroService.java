@@ -29,7 +29,9 @@ public abstract class MicroService implements Runnable {
     public MessageBus msb = MessageBusImpl.getInstance();
     ConcurrentHashMap<Class<? extends Message>, Callback<?>> msgToCalls = new ConcurrentHashMap<>();
 
-
+    public ConcurrentHashMap<Class<? extends Message>, Callback<?>> getMsgToCalls() {
+        return msgToCalls;
+    }
 
     /**
      * @param name the micro-service name (used mainly for debugging purposes -
