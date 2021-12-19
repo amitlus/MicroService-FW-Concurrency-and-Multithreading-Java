@@ -40,11 +40,18 @@ public class GPU {
     private int vramSpace;
     private int currentTick;
     private int trainingTime;
+    int GPUTimeUnits;
 
 
     public boolean isCounting =  false;
 
     public GPU(Type type, Cluster cluster) {
+        unprocessedDataList = new LinkedBlockingQueue<>();
+        processedDataList = new LinkedBlockingQueue<>();
+        TrainedDataList = new LinkedBlockingQueue<>();
+        this.currentTick = 0;
+        fastMessages = new LinkedBlockingQueue<Message>();
+        trainEvents = new LinkedBlockingQueue<>();
         this.cluster = Cluster.getInstance();
         this.type = type;
         this.model = null;
@@ -146,7 +153,6 @@ public class GPU {
         for (int i = 0; i < num; i++) {
             unprocessedDataList.add(new DataBatch(data, index, this, num, trainingTime));
             index = index + 1000;
-            num++;
         }
     }
 
@@ -155,9 +161,12 @@ public class GPU {
         public void trainDataBatch(DataBatch dataBatch) {
             model.setStatus(Model.Status.Training);
             dataBatch.decreaseTrainingTimeLeft();
+            GPUTimeUnits++;
             if (dataBatch.getTrainingTimeLeft() == 0)
                 //AFTER WE FINISH TRAINING A DATA BATCH, WE CHECK IF WE FINISHED TRAINING ALL THE MODEL'S DATA BATCHES
                 if (TrainedDataList.size() == dataBatch.dataParts) {
+                    ArrayList<String> stat = (ArrayList<String>)Cluster.Statistics[0];
+                    stat.add(model.getName());
                     model.setStatus(Model.Status.Trained);
                     isCounting = false;
                 }

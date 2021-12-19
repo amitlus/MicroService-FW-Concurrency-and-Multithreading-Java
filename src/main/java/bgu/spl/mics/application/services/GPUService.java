@@ -38,11 +38,13 @@ public class GPUService extends MicroService {
         //SUBSCRIBE TO TICK BROADCAST
         subscribeBroadcast(TickBroadcast.class, (TickBroadcast)->{gpu.updateTick();
         if(gpu.isCounting){
-            if (gpu.getProcessedDataList().peek().getTrainingTimeLeft() > 0)
-                gpu.trainDataBatch(gpu.getProcessedDataList().peek());
-            if (gpu.getProcessedDataList().peek().getTrainingTimeLeft() == 0) {
-                gpu.getTrainedDataList().add(gpu.getProcessedDataList().remove());
+            if(gpu.getProcessedDataList().peek() != null){
+                if (gpu.getProcessedDataList().peek().getTrainingTimeLeft() > 0 )
+                    gpu.trainDataBatch(gpu.getProcessedDataList().peek());
+                if (gpu.getProcessedDataList().peek().getTrainingTimeLeft() == 0)
+                    gpu.getTrainedDataList().add(gpu.getProcessedDataList().remove());
             }
+
             if(gpu.isCounting==false)
                 msb.complete(trainEvent, gpu.getModel().getStatus());
         }
@@ -70,12 +72,17 @@ public class GPUService extends MicroService {
             gpu.getModel().setStatus(Model.Status.Training);
             gpu.setCounting(true);
             BlockingQueue<Message> queue = gpu.getMsb().getMicroToMsg().get(this);
-            while(queue.peek().getClass()!=TickBroadcast.class){
-                if(queue.peek().getClass() == TrainModelEvent.getClass())
-                    gpu.getTrainEvents().add(queue.remove());
-                else
-                    gpu.getFastMessages().add(queue.remove());
+            try {
+                while (queue.peek().getClass() != TickBroadcast.class) {
+
+                    if (queue.peek().getClass() == TrainModelEvent.getClass())
+                        gpu.getTrainEvents().add(queue.remove());
+                    else
+                        gpu.getFastMessages().add(queue.remove());
+                }
             }
+            catch(NullPointerException e){}
+
             gpu.makeDataList(); gpu.sendDataBatch();
         });
 

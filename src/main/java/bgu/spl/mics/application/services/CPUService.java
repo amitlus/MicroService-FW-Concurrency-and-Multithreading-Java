@@ -15,7 +15,7 @@ import bgu.spl.mics.application.objects.CPU;
 public class CPUService extends MicroService {
     CPU cpu;
     public CPUService(String name, CPU cpu) {
-        super("Change_This_Name");
+        super(name);
         this.cpu = cpu;
         // TODO Implement this
     }

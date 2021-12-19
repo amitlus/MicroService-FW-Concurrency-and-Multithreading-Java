@@ -21,6 +21,7 @@ public class DataBatch {
         this.start_index = start_index;
         this.dataParts = dataParts;
         this.trainingTimeLeft = trainingTimeLeft;
+        this.source = source;
     }
 
     public void decreaseTrainingTimeLeft(){

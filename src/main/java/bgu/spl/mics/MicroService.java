@@ -67,7 +67,7 @@ public abstract class MicroService implements Runnable {
      *                 queue.
      */
     protected final <T, E extends Event<T>> void subscribeEvent(Class<E> type, Callback<E> callback) throws InterruptedException {
-        msgToCalls.put(type, callback);
+        msgToCalls.putIfAbsent(type, callback);
         msb.subscribeEvent(type, this);
         //notifyAll();
     }
@@ -94,7 +94,7 @@ public abstract class MicroService implements Runnable {
      */
     protected final <B extends Broadcast> void subscribeBroadcast(Class<B> type, Callback<B> callback) {
         msb.subscribeBroadcast(type, this);
-        msgToCalls.put(type, callback);
+        msgToCalls.putIfAbsent(type, callback);
     }
 
     /**
@@ -178,7 +178,7 @@ public abstract class MicroService implements Runnable {
         while (!terminated) {
             try {
                 msg = msb.awaitMessage(this);
-                Callback action = msgToCalls.get(msg);
+                Callback action = msgToCalls.get(msg.getClass());
                 if (action != null)
                     action.call(msg);
             } catch (InterruptedException e) {

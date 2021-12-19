@@ -17,6 +17,7 @@ public class CPU {
     private boolean isCounting = false;
     private int processTime;
     private int currentTick;
+    int CPUTimeUnits;
 
     public CPU (int cores, Cluster cluster){
         this.cores = cores;
@@ -25,10 +26,10 @@ public class CPU {
     }
 
     public void getUnprocessedDataBatch() throws InterruptedException {
-        if(cluster.getDataToProcessList().peek()==null)
+
+        try {
             currentBatch = cluster.getDataToProcessList().take();
-        else
-            throw new IllegalArgumentException("No more batches to process");
+        }catch(NullPointerException e){}
 
         isCounting = true;
 
@@ -72,6 +73,7 @@ public class CPU {
 
     public void processCurrentBatch() throws InterruptedException {
         decreaseProcessTime();
+        CPUTimeUnits++;
         if (processTime == 0) {
             sendDataBatch();
             isCounting = false;

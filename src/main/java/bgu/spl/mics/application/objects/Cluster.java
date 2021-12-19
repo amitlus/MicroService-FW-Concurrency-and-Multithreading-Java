@@ -15,6 +15,8 @@ public class Cluster {
 	private static LinkedBlockingQueue<DataBatch> dataToProcess;
 	private ArrayList<GPU> GPUArray;
 	private ArrayList<CPU> CPUArray;
+	public static Object[] Statistics = new Object[4];
+
 
 	private static class SingletonHolder {
 		private static Cluster instance = new Cluster();
@@ -24,7 +26,10 @@ public class Cluster {
 		GPUArray = new ArrayList<GPU>();
 		CPUArray = new ArrayList<CPU>();
 		dataToProcess = new LinkedBlockingQueue<DataBatch>();
-
+		Statistics[0] = new ArrayList<String>(); //Names of all models trained
+		Statistics[1] = 0; //Total number of data batches processed by the CPUs
+		Statistics[2] = 0; //Number of CPU time units used
+		Statistics[3] = 0; //Number of GPU time units used
 	}
 
 	/**
@@ -49,6 +54,8 @@ public class Cluster {
 
 	//SENDS BACK THE PROCESSED DATA BATCH TO ITS SOURCE GPU
 	public void sendProcessedDataBatch(GPU gpu, DataBatch dataBatch) {
+		Statistics[1] = (int)Statistics[1] + 1;
+		System.out.println(Statistics[1]);
 		gpu.getProcessedDataList().add(dataBatch);
 	}
 }

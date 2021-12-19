@@ -38,6 +38,7 @@ public class TimeService extends MicroService{
 				{
 					try {
 						sendBroadcast(new TerminateBroadcast());
+						terminate();
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -49,7 +50,6 @@ public class TimeService extends MicroService{
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
-					terminate();
 				}
 
 			}
