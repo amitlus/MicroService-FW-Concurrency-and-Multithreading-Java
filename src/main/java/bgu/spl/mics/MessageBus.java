@@ -18,7 +18,7 @@ public interface MessageBus {
      * @param type The type to subscribe to,
      * @param m    The subscribing micro-service.
      */
-    <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m);
+    <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) throws InterruptedException;
 
     /**
      * Subscribes {@code m} to receive {@link Broadcast}s of type {@code type}.
@@ -46,7 +46,7 @@ public interface MessageBus {
      * <p>
      * @param b 	The message to added to the queues.
      */
-    void sendBroadcast(Broadcast b);
+    void sendBroadcast(Broadcast b) throws InterruptedException;
 
     /**
      * Adds the {@link Event} {@code e} to the message queue of one of the

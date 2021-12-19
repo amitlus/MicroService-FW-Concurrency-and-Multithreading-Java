@@ -11,13 +11,15 @@ import java.util.Random;
 
 import java.util.ArrayList;
 
+import static bgu.spl.mics.application.objects.Model.Results.Bad;
+import static bgu.spl.mics.application.objects.Model.Results.Good;
+
 /**
  * Passive object representing a single GPU.
  * Add all the fields described in the assignment as private fields.
  * Add fields and methods to this class as you see fit (including public methods and constructors).
  */
 public class GPU {
-
     /**
      * Enum representing the type of the GPU.
      */
@@ -34,7 +36,6 @@ public class GPU {
     private Type type;
     private Model model;
     private Cluster cluster;
-
     private MessageBusImpl msb = MessageBusImpl.getInstance();
     private int vramSpace;
     private int currentTick;
@@ -59,26 +60,35 @@ public class GPU {
         }
     }
 
-    public String Test() {
+    public void Test() {
         Random rand = new Random();
-        int rand_int = rand.nextInt(11);
+        int rand_int = rand.nextInt(10);
 
-        if(model.student.getStatus() == Student.Degree.MSc){
-            if(rand_int >= 0 && rand_int <= 1)
-                return "GOOD";
+        if(model.getStudent().getStatus() == Student.Degree.MSc){
+            if(rand_int >= 0 && rand_int <= 5)
+                model.setResult(Good);
             else
-                return "BAD";
+                model.setResult(Bad);
         }
         else {
-            if (rand_int >= 0 && rand_int <= 2)
-                return "GOOD";
+            if (rand_int >= 0 && rand_int <= 7)
+                model.setResult(Good);
             else
-                return "BAD";
+                model.setResult(Bad);
             }
         }
 
     public void updateTick() {
         currentTick++;
+    }
+
+    public static Type getTypeFromString(String gpuType) {
+        if(gpuType == "RTX3090")
+            return Type.RTX3090;
+        else if(gpuType == "RTX2080")
+            return Type.RTX2080;
+        else
+            return Type.GTX1080;
     }
 
     public void setCounting(boolean counting) {
@@ -167,6 +177,10 @@ public class GPU {
 
         public void terminate() {
         }
+
+        public void setModel(Model model) {
+        this.model = model;
+    }
 
     }
 

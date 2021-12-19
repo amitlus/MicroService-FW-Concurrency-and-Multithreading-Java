@@ -17,11 +17,16 @@ import com.google.gson.JsonObject;
  * In the end, you should output a text file.
  */
 public class CRMSRunner {
+    public static int gpuSize = 0;
+
     public static void main(String[] args) throws IOException, InterruptedException {
 
 //        String s = "2";
 //        int i = StrToInt.stoi(s);
 //        System.out.println(i);
+
+
+        Cluster cluster = Cluster.getInstance();
 
         List<MicroService> microServicesList = new ArrayList<>();
         List<Student> studentsList = new ArrayList<>();
@@ -36,10 +41,9 @@ public class CRMSRunner {
         JsonArray arrayOfGpus = jo.getAsJsonArray("GPUS");
         JsonArray arrayOfCpus = jo.getAsJsonArray("CPUS");
         JsonArray arrayOfConferences = jo.getAsJsonArray("Conferences");
-        //JsonObject tickTime = jo.getAsJsonObject("TickTime");
-        //JsonObject duration = jo.getAsJsonObject("Duration");
-        int tickTime = jo.getAsJsonObject("TickTime").getAsInt();
-        int duration = jo.getAsJsonObject("Duration").getAsInt();
+
+        int tickTime = Integer.parseInt(jo.get("TickTime").toString());
+        int duration = Integer.parseInt(jo.get("Duration").toString());
 
         for (int i=0; i<arrayOfStudents.size(); i++){
             JsonObject student = arrayOfStudents.get(i).getAsJsonObject();
@@ -70,12 +74,12 @@ public class CRMSRunner {
         }
 
 
-        Cluster cluster;
         for (int i = 0; i<arrayOfGpus.size(); i++){ //create gpus
             String gpuType = arrayOfGpus.get(i).toString();
             GPU.Type type = GPU.getTypeFromString(gpuType);
-            GPU gpu = new GPU(type,null,cluster) ;
+            GPU gpu = new GPU(type, cluster) ;
             cluster.getGPUS().add(gpu);
+            gpuSize++;
             microServicesList.add(new GPUService("GPU "+ (i+1),gpu));
         }
 
@@ -91,17 +95,21 @@ public class CRMSRunner {
             JsonObject conference = arrayOfConferences.get(i).getAsJsonObject();
             String conferenceName = conference.get("name").toString();
             int conferenceDate = conference.get("date").getAsInt();
-            ConferenceInformation confrenceInformation = new ConferenceInformation(conferenceName,conferenceDate);
-            ConferencesList.add(confrenceInformation);
-            microServicesList.add(new ConferenceService(conferenceName,confrenceInformation));
+            ConferenceInformation conferenceInformation = new ConferenceInformation(conferenceName,conferenceDate);
+            ConferencesList.add(conferenceInformation);
+            microServicesList.add(new ConferenceService(conferenceName,conferenceInformation));
         }
 
         microServicesList.add(new TimeService(tickTime, duration)) ;
+
+
 
         for (int i = 0; i < microServicesList.size(); i++) {
             Thread thread = new Thread(microServicesList.get(i));
             threadList.add(thread);
             thread.start();
         }
+
+
 }}
 

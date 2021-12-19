@@ -34,9 +34,24 @@ public class TimeService extends MicroService{
 			public void run(){
 				currentTime++;
 				if(currentTime == duration)
-					sendBroadcast(new TerminateBroadcast());
-				else
-					sendBroadcast(new TickBroadcast());
+					//SEND TERMINATE BROADCAST
+				{
+					try {
+						sendBroadcast(new TerminateBroadcast());
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+				else {
+					//SEND TICK BROADCAST
+					try {
+						sendBroadcast(new TickBroadcast());
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					terminate();
+				}
+
 			}
 		},0,tickTime);
 	}

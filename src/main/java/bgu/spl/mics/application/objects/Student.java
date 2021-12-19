@@ -10,14 +10,7 @@ import java.util.ArrayList;
  * Add fields and methods to this class as you see fit (including public methods and constructors).
  */
 public class Student {
-    public void updateTick() {
-    }
 
-    public void updatePublications() {
-    }
-
-    public void updatePapersRead() {
-    }
 
     /**
      * Enum representing the Degree the student is studying for.
@@ -34,12 +27,19 @@ public class Student {
     private int publications = 0;
     private int papersRead = 0;
     public ArrayList<Model> listOfModels;
+    public ArrayList<Model> successfulModels;
+    public ArrayList<Model> failedModels;
+
+    int currentTick;
 
 
     public Student(int name, String department, Degree status){
         this.name = name;
         this.department = department;
         this.status = status;
+        listOfModels = new ArrayList<Model>();
+        successfulModels = new ArrayList<Model>();
+        failedModels = new ArrayList<Model>();
     }
 
     public int getName(){
@@ -76,5 +76,21 @@ public class Student {
 
     public ArrayList<Model> getListOfModels(){
         return listOfModels;
+    }
+
+    public void updateTick() {
+        currentTick++;
+    }
+
+    public void updateStudentResume(ArrayList<Model> sucModels) {
+        for(int i=0; i<successfulModels.size(); i++) {
+            if (successfulModels.contains(sucModels.get(i)))
+                publications++;
+            else
+                papersRead++;
+        }
+     }
+
+    public void terminate() {
     }
 }

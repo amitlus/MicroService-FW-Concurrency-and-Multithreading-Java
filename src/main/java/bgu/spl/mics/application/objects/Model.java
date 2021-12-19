@@ -10,15 +10,15 @@ public class Model {
         PreTrained, Training, Trained, Tested
     }
 
-    enum Results{
+    public enum Results{
         None, Good, Bad
     }
 
-    String name;
-    Data data;
-    Student student;
-    Status status;
-    Results result;
+    private String name;
+    private Data data;
+    private Student student;
+    private Status status;
+    private Results result;
 
     public Model(String name, Data data, Student student){
         this.name = name;
@@ -51,6 +51,8 @@ public class Model {
     public void setStatus(Status status){
         this.status = status;
     }
-
+    public void setResult(Results result){
+        this.result = result;
+    }
 
 }

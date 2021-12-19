@@ -1,7 +1,8 @@
 package bgu.spl.mics.application.services;
 
-import bgu.spl.mics.Event;
+import bgu.spl.mics.MessageBusImpl;
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.CRMSRunner;
 import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.application.objects.Model;
 import bgu.spl.mics.application.objects.Student;
@@ -20,35 +21,61 @@ import java.util.ArrayList;
 public class StudentService extends MicroService {
 
     Student student;
+    ArrayList<Model> listOfModels;
+    boolean notNull;
     public StudentService(String name, Student student) {
         super(name);
         this.student = student;
+        this.listOfModels = student.getListOfModels();
+        notNull = false;
+;
     }
 
     @Override
     protected void initialize() {
-        ArrayList<Model> listOfModels = student.getListOfModels();
 
+        int size = 0;
+        while(!notNull)
+            try{
+                size = MessageBusImpl.getMessageToSubs().get(TrainModelEvent.class).size();
+                notNull = true;
+            }catch (NullPointerException e){}
+        while (size < CRMSRunner.gpuSize)
+            size = MessageBusImpl.getMessageToSubs().get(TrainModelEvent.class).size();
+
+
+        //SUBSCRIBE TO TICK BROADCAST
         subscribeBroadcast(TickBroadcast.class, (TickBroadcast)->{student.updateTick();
 
-        if(student.listOfModels.get(0).getStatus()== Model.Status.PreTrained)
-            sendEvent(new TrainModelEvent(listOfModels.get(0)));
+        if(!listOfModels.isEmpty()){
+            //SEND TRAIN MODEL EVENT
+            if(student.listOfModels.get(0).getStatus()== Model.Status.PreTrained)
+                sendEvent(new TrainModelEvent(listOfModels.get(0)));
 
-        else if(student.listOfModels.get(0).getStatus()== Model.Status.Trained)
-            sendEvent(new TestModelEvent());
+                //SEND TEST MODEL EVENT
+            else if(student.listOfModels.get(0).getStatus()== Model.Status.Trained)
+                sendEvent(new TestModelEvent());
 
-        else if(student.listOfModels.get(0).getStatus()== Model.Status.Tested)
-            sendEvent(new PublishResultsEvent());
+                //SEND PUBLISH RESULT EVENT
+            else if(student.listOfModels.get(0).getStatus()== Model.Status.Tested) {
+                if(listOfModels.get(0).getResult() == Model.Results.Good) {
+                    sendEvent(new PublishResultsEvent(student.listOfModels.get(0)));
+                    student.successfulModels.add(student.listOfModels.remove(0));
+                }
+                else
+                    student.failedModels.add(student.listOfModels.remove(0));
+            }
+         }});
 
-         });
 
 
-        subscribeBroadcast(TerminateBroadcast.class, (TerminateBroadcast)->{student.terminate();});
-
-        subscribeBroadcast(PublishConferenceBroadcast.class, (PublishConferenceBroadcast)->{student.updatePublications();
-            student.updatePapersRead();
+        //SUBSCRIBE TO PUBLISH CONFERENCE BROADCAST
+        subscribeBroadcast(PublishConferenceBroadcast.class, (PublishConferenceBroadcast)->{student.updateStudentResume(PublishConferenceBroadcast.getSuccessfullModels());
         });
 
+
+        //SUBSCRIBE TO TERMINATE BROADCAST
+        subscribeBroadcast(TerminateBroadcast.class, (TerminateBroadcast)->{terminate();});
 
 
     }

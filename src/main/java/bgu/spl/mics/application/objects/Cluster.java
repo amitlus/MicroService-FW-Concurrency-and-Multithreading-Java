@@ -1,6 +1,5 @@
 package bgu.spl.mics.application.objects;
 import java.util.concurrent.LinkedBlockingQueue;
-import bgu.spl.mics.MessageBusImpl;
 
 import java.util.ArrayList;
 
@@ -14,14 +13,18 @@ import java.util.ArrayList;
 public class Cluster {
 
 	private static LinkedBlockingQueue<DataBatch> dataToProcess;
-//	private static LinkedBlockingQueue<DataBatch> dataProcessed;
+	private ArrayList<GPU> GPUArray;
+	private ArrayList<CPU> CPUArray;
 
 	private static class SingletonHolder {
 		private static Cluster instance = new Cluster();
 	}
 
 	private Cluster() {
-		this.dataToProcess = new LinkedBlockingQueue<DataBatch>();
+		GPUArray = new ArrayList<GPU>();
+		CPUArray = new ArrayList<CPU>();
+		dataToProcess = new LinkedBlockingQueue<DataBatch>();
+
 	}
 
 	/**
@@ -31,6 +34,13 @@ public class Cluster {
 		return Cluster.SingletonHolder.instance;
 	}
 
+	public ArrayList<GPU> getGPUS() {
+		return GPUArray;
+	}
+
+	public ArrayList<CPU> getCPUS() {
+		return CPUArray;
+	}
 
 	public LinkedBlockingQueue<DataBatch> getDataToProcessList() {
 		return dataToProcess;

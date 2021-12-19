@@ -1,4 +1,6 @@
 package bgu.spl.mics;
+import bgu.spl.mics.application.messages.TickBroadcast;
+
 import java.util.Iterator;
 import java.util.concurrent.*;
 import java.util.*;
@@ -13,9 +15,9 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class MessageBusImpl implements MessageBus {
 
-	public static ConcurrentHashMap<MicroService, BlockingQueue<Message>> microToMsg = new ConcurrentHashMap<>();
-	public static ConcurrentHashMap<Class<? extends Message>, BlockingQueue<MicroService>> messageToSubs = new ConcurrentHashMap<>();
-	private ConcurrentHashMap<Event<?>,Future> eventToFuture = new ConcurrentHashMap<>();
+	public static ConcurrentHashMap<MicroService, BlockingQueue<Message>> microToMsg;
+	public static ConcurrentHashMap<Class<? extends Message>, BlockingQueue<MicroService>> messageToSubs;
+	public static ConcurrentHashMap<Event<?>,Future> eventToFuture;
 
 	public static ConcurrentHashMap<MicroService, BlockingQueue<Message>> getMicroToMsg() {
 		return microToMsg;
@@ -29,12 +31,16 @@ public class MessageBusImpl implements MessageBus {
 	private MessageBusImpl() {
 		microToMsg = new ConcurrentHashMap<MicroService, BlockingQueue<Message>>();
 		messageToSubs = new ConcurrentHashMap<Class<? extends Message>, BlockingQueue<MicroService>>();
+		eventToFuture = new ConcurrentHashMap<Event<?>,Future>();
 	}
 
 	public static MessageBusImpl getInstance() {
 		return SingletonHolder.instance;
 	}
 
+	public static ConcurrentHashMap<Class<? extends Message>, BlockingQueue<MicroService>> getMessageToSubs() {
+		return messageToSubs;
+	}
 
 	/**
 	 * @pre: none
@@ -43,20 +49,12 @@ public class MessageBusImpl implements MessageBus {
 
 	//BACK AND FIX THIS
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
-		Class<? extends Class> t = type.getClass();
 		if(!messageToSubs.containsKey(type))
 			messageToSubs.put(type, new LinkedBlockingQueue<MicroService>());
-		else
-			messageToSubs.get(type).add(m);
+
+		messageToSubs.get(type).add(m);
 	}
 
-	/**
-	 * @pre:
-	 * @post:
-	 */
-	public <T> boolean isSubscribedToEvent(Class<? extends Event<T>> type, MicroService m) {
-		return(messageToSubs.get(type).contains(m));
-	}
 
 	/**
 	 * @pre: none
@@ -65,17 +63,10 @@ public class MessageBusImpl implements MessageBus {
 
 	//BACK AND FIX THIS
 	public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) {
-		if(!isSubscribedToBroadcast(type, m))
-			messageToSubs.get(type).add(m);
+		if(!messageToSubs.containsKey(type))
+			messageToSubs.put(type, new LinkedBlockingQueue<MicroService>());
 
-	}
-
-	/**
-	 * @pre:
-	 * @post:
-	 */
-	public boolean isSubscribedToBroadcast(Class<? extends Broadcast> type, MicroService m) {
-		return(messageToSubs.get(type).contains(m));
+		messageToSubs.get(type).add(m);
 	}
 
 	/**
@@ -107,9 +98,12 @@ public class MessageBusImpl implements MessageBus {
 	 * b.equals(awaitMessage(m))
 	 */
 
-	public void sendBroadcast(Broadcast b) {
-		BlockingQueue<MicroService> q = messageToSubs.get(b);//If empty he waits (That's how LinkedBlockingQueue works)
+	public void sendBroadcast(Broadcast b){
+		BlockingQueue<MicroService> q = messageToSubs.get(new TickBroadcast());//If empty he waits (That's how LinkedBlockingQueue works)
 		//Locks messageToSubs queue
+//		while(q == null)
+//			wait();
+
 		synchronized (q){
 			Iterator<MicroService> iter = q.iterator();
 			while (iter.hasNext())

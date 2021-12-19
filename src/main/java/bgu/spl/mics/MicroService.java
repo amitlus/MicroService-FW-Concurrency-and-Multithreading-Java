@@ -1,6 +1,5 @@
 package bgu.spl.mics;
 
-import java.util.HashMap;
 import java.util.concurrent.*;
 
 
@@ -26,12 +25,14 @@ public abstract class MicroService implements Runnable {
 
     private boolean terminated = false;
     private final String name;
-    public MessageBus msb = MessageBusImpl.getInstance();
+    public MessageBus msb;
     ConcurrentHashMap<Class<? extends Message>, Callback<?>> msgToCalls = new ConcurrentHashMap<>();
 
     public ConcurrentHashMap<Class<? extends Message>, Callback<?>> getMsgToCalls() {
         return msgToCalls;
     }
+
+
 
     /**
      * @param name the micro-service name (used mainly for debugging purposes -
@@ -39,7 +40,10 @@ public abstract class MicroService implements Runnable {
      */
     public MicroService(String name) {
         this.name = name;
+        msb = MessageBusImpl.getInstance();
+
     }
+
 
     /**
      * Subscribes to events of type {@code type} with the callback
@@ -51,7 +55,7 @@ public abstract class MicroService implements Runnable {
      * <p>
      * For a received message {@code m} of type {@code type = m.getClass()}
      * calling the callback {@code callback} means running the method
-     * {@link Callback#call(java.lang.Object)} by calling
+     * {@link Callback#//call(Message)} by calling
      * {@code callback.call(m)}.
      * <p>
      * @param <E>      The type of event to subscribe to.
@@ -62,9 +66,10 @@ public abstract class MicroService implements Runnable {
      *                 {@code type} are taken from this micro-service message
      *                 queue.
      */
-    protected final <T, E extends Event<T>> void subscribeEvent(Class<E> type, Callback<E> callback) {
-        msb.subscribeEvent(type, this);
+    protected final <T, E extends Event<T>> void subscribeEvent(Class<E> type, Callback<E> callback) throws InterruptedException {
         msgToCalls.put(type, callback);
+        msb.subscribeEvent(type, this);
+        //notifyAll();
     }
 
     /**
@@ -77,7 +82,7 @@ public abstract class MicroService implements Runnable {
      * <p>
      * For a received message {@code m} of type {@code type = m.getClass()}
      * calling the callback {@code callback} means running the method
-     * {@link Callback#call(java.lang.Object)} by calling
+     * {@link Callback#//call(Message)} by calling
      * {@code callback.call(m)}.
      * <p>
      * @param <B>      The type of broadcast message to subscribe to
@@ -105,8 +110,11 @@ public abstract class MicroService implements Runnable {
      * 	       			null in case no micro-service has subscribed to {@code e.getClass()}.
      */
     protected final <T> Future<T> sendEvent(Event<T> e) {
+        //If empty he waits (That's how LinkedBlockingQueue works)
+//        while(MessageBusImpl.getMessageToSubs().get(e) == null) {
+//            this.wait();
+//        }
         return msb.sendEvent(e);
-
     }
 
     /**
@@ -115,7 +123,7 @@ public abstract class MicroService implements Runnable {
      * <p>
      * @param b The broadcast message to send
      */
-    protected final void sendBroadcast(Broadcast b) {
+    protected final void sendBroadcast(Broadcast b) throws InterruptedException {
         msb.sendBroadcast(b);
     }
 
@@ -136,7 +144,7 @@ public abstract class MicroService implements Runnable {
     /**
      * this method is called once when the event loop starts.
      */
-    protected abstract void initialize();
+    protected abstract void initialize() throws InterruptedException;
 
     /**
      * Signals the event loop that it must terminate after handling the current
@@ -161,7 +169,11 @@ public abstract class MicroService implements Runnable {
     @Override
     public final void run() {
         msb.register(this);
-        initialize();
+        try {
+            initialize();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         Message msg = null;
         while (!terminated) {
             try {

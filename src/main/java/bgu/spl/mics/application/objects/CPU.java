@@ -12,7 +12,7 @@ public class CPU {
 
     private int cores;
     private Collection<DataBatch> data;
-    private Cluster cluster = Cluster.getInstance();;
+    private Cluster cluster = Cluster.getInstance();
     private DataBatch currentBatch;
     private boolean isCounting = false;
     private int processTime;

@@ -5,8 +5,8 @@ import bgu.spl.mics.Event;
 
 public class TickBroadcast implements Broadcast {
 
-
+int i;
     public TickBroadcast(){
-
+this.i = 0;
     }
 }

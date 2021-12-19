@@ -10,14 +10,18 @@ public class ConferenceInformation {
 
     private String name;
     private int date;
-    ArrayList<String> successfulModels;
+    private int currentTick;
+
+
+
+    ArrayList<Model> successfulModels;
 
     public ConferenceInformation(String name, int date){
         this.name = name;
         this.date = date;
     }
 
-    public void addSuccessfulModel(String modelName){
+    public void addSuccessfulModel(Model modelName){
         successfulModels.add(modelName);
     }
 
@@ -30,5 +34,17 @@ public class ConferenceInformation {
     }
 
     public void updateTick() {
+        currentTick++;
+    }
+
+    public int getCurrentTick() {
+        return currentTick;
+    }
+
+    public ArrayList<Model> getSuccessfulModels() {
+        return successfulModels;
+    }
+
+    public void terminate() {
     }
 }

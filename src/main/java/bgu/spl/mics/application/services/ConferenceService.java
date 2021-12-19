@@ -9,7 +9,7 @@ import bgu.spl.mics.application.objects.ConferenceInformation;
 
 /**
  * Conference service is in charge of
- * aggregating good results and publishing them via the {@link PublishConfrenceBroadcast},
+ * aggregating good results and publishing them via the {@link //PublishConfrenceBroadcast},
  * after publishing results the conference will unregister from the system.
  * This class may not hold references for objects which it is not responsible for.
  *
@@ -19,15 +19,29 @@ import bgu.spl.mics.application.objects.ConferenceInformation;
 public class ConferenceService extends MicroService {
     ConferenceInformation conferenceInformation;
     public ConferenceService(String name, ConferenceInformation conferenceInformation) {
-        super("Change_This_Name");
+        super(name);
         this.conferenceInformation = conferenceInformation;
     }
 
     @Override
-    protected void initialize() {
-        subscribeBroadcast(TickBroadcast.class, (TickBroadcast)->{conferenceInformation.updateTick();});
-        subscribeBroadcast(TerminateBroadcast.class, (TerminateBroadcast)->{conferenceInformation.terminate();});
-        subscribeEvent(PublishResultsEvent.class, (PublishResultsEvent)->{conferenceInformation.addSuccessfulModel();});
-        sendBroadcast(new PublishConferenceBroadcast());
+    protected void initialize() throws InterruptedException {
+        //SUBSCRIBE TO TICK BROADCAST
+        subscribeBroadcast(TickBroadcast.class, (TickBroadcast)->{conferenceInformation.updateTick();
+        if(conferenceInformation.getCurrentTick() == conferenceInformation.getDate()) {
+            //SEND PUBLISH CONFERENCE BROADCAST
+            sendBroadcast(new PublishConferenceBroadcast(conferenceInformation.getSuccessfulModels()));
+            msb.unregister(this);
+        }
+        });
+
+        //SUBSCRIBE TO PUBLISH RESULT EVENT
+        subscribeEvent(PublishResultsEvent.class, (PublishResultsEvent)->{conferenceInformation.addSuccessfulModel(PublishResultsEvent.getModel());
+        msb.complete(PublishResultsEvent, true);
+        });
+
+
+
+        //SUBSCRIBE TO TERMINATE BROADCAST
+        subscribeBroadcast(TerminateBroadcast.class, (TerminateBroadcast)->{terminate();});
     }
 }
