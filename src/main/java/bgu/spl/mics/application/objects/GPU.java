@@ -162,14 +162,17 @@ public class GPU {
             model.setStatus(Model.Status.Training);
             dataBatch.decreaseTrainingTimeLeft();
             GPUTimeUnits++;
-            if (dataBatch.getTrainingTimeLeft() == 0)
+            if (dataBatch.getTrainingTimeLeft() == 0) {
+                vramSpace++;
                 //AFTER WE FINISH TRAINING A DATA BATCH, WE CHECK IF WE FINISHED TRAINING ALL THE MODEL'S DATA BATCHES
                 if (TrainedDataList.size() == dataBatch.dataParts) {
-                    ArrayList<String> stat = (ArrayList<String>)Cluster.Statistics[0];
+                    ArrayList<String> stat = (ArrayList<String>) Cluster.Statistics[0];
                     stat.add(model.getName());
                     model.setStatus(Model.Status.Trained);
+                    System.out.println("MODEL TRAINED "+getModel().getName());
                     isCounting = false;
                 }
+            }
         }
 
         public Model getModel () {
