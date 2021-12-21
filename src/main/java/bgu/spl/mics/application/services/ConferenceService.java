@@ -30,6 +30,7 @@ public class ConferenceService extends MicroService {
         if(conferenceInformation.getCurrentTick() == conferenceInformation.getDate()) {
             //SEND PUBLISH CONFERENCE BROADCAST
             sendBroadcast(new PublishConferenceBroadcast(conferenceInformation.getSuccessfulModels()));
+            System.out.println("PUBLISH CONFERENCE BROADCAST SENT");
             msb.unregister(this);
         }
         });
