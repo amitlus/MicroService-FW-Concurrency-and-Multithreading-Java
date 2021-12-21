@@ -32,6 +32,7 @@ public class StudentService extends MicroService {
     @Override
     protected void initialize() {
 
+        //WE WANT TO ENSURE THAT ALL THE GPUS SUBSCRIBED TO TRAIN MODEL EVENT BEFORE WE START
         int size = 0;
         while(!notNull)
             try{
@@ -41,10 +42,10 @@ public class StudentService extends MicroService {
         while (size < CRMSRunner.gpuSize)
             size = MessageBusImpl.getMessageToSubs().get(TrainModelEvent.class).size();
 
-
         //SUBSCRIBE TO TICK BROADCAST
         subscribeBroadcast(TickBroadcast.class, (TickBroadcast)->{student.updateTick();
-
+        if(TickBroadcast.isFinish() == true)
+            terminate();
         if(!listOfModels.isEmpty()){
             //SEND TRAIN MODEL EVENT
             if(student.listOfModels.get(0).getStatus()== Model.Status.PreTrained){
@@ -78,11 +79,6 @@ public class StudentService extends MicroService {
         //SUBSCRIBE TO PUBLISH CONFERENCE BROADCAST
         subscribeBroadcast(PublishConferenceBroadcast.class, (PublishConferenceBroadcast)->{student.updateStudentResume(PublishConferenceBroadcast.getSucessfullModels());
         });
-
-
-        //SUBSCRIBE TO TERMINATE BROADCAST
-        subscribeBroadcast(TerminateBroadcast.class, (TerminateBroadcast)->{terminate();});
-
 
     }
 }

@@ -1,0 +1,84 @@
+{
+    "students": [
+        {
+       "Name": ""Simba"",
+       "Department": ""Computer Science"",
+       "Status": "PhD",
+          "Publications": 0,
+          "PapersRead": 0,
+          "TrainedModels": [
+            ]
+        },
+        {
+       "Name": ""Zazu"",
+       "Department": ""EE"",
+       "Status": "PhD",
+          "Publications": 0,
+          "PapersRead": 0,
+          "TrainedModels": [
+            ]
+        },
+        {
+       "Name": ""Pumba"",
+       "Department": ""Computer Science"",
+       "Status": "PhD",
+          "Publications": 0,
+          "PapersRead": 0,
+          "TrainedModels": [
+            ]
+        },
+        {
+       "Name": ""Timon"",
+       "Department": ""SE"",
+       "Status": "PhD",
+          "Publications": 0,
+          "PapersRead": 0,
+          "TrainedModels": [
+            ]
+        },
+        {
+       "Name": ""Nala"",
+       "Department": ""Computer Science"",
+       "Status": "PhD",
+          "Publications": 0,
+          "PapersRead": 0,
+          "TrainedModels": [
+            ]
+        }
+    ],
+    "conferences": [
+        {
+          "name": ""ICML"",
+          "date": 20000,
+          "publications": [
+          ]
+        },
+        {
+          "name": ""NeurIPS"",
+          "date": 25000,
+          "publications": [
+          ]
+        },
+        {
+          "name": ""CVPR"",
+          "date": 30000,
+          "publications": [
+          ]
+        },
+        {
+          "name": ""ECCV"",
+          "date": 40000,
+          "publications": [
+          ]
+        },
+        {
+          "name": ""AISTATS"",
+          "date": 50000,
+          "publications": [
+          ]
+        }
+    ],
+    "cpuTimeUsed":0,
+    "gpuTimeUsed":0,
+    "batchesProcessed":0
+}

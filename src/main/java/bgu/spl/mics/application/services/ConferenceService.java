@@ -3,7 +3,6 @@ package bgu.spl.mics.application.services;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.PublishConferenceBroadcast;
 import bgu.spl.mics.application.messages.PublishResultsEvent;
-import bgu.spl.mics.application.messages.TerminateBroadcast;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.objects.ConferenceInformation;
 
@@ -27,6 +26,8 @@ public class ConferenceService extends MicroService {
     protected void initialize() throws InterruptedException {
         //SUBSCRIBE TO TICK BROADCAST
         subscribeBroadcast(TickBroadcast.class, (TickBroadcast)->{conferenceInformation.updateTick();
+            if(TickBroadcast.isFinish() == true)
+                terminate();
         if(conferenceInformation.getCurrentTick() == conferenceInformation.getDate()) {
             //SEND PUBLISH CONFERENCE BROADCAST
             sendBroadcast(new PublishConferenceBroadcast(conferenceInformation.getSuccessfulModels()));
@@ -41,9 +42,5 @@ public class ConferenceService extends MicroService {
             System.out.println("UPDATED RESULTS");
         });
 
-
-
-        //SUBSCRIBE TO TERMINATE BROADCAST
-        subscribeBroadcast(TerminateBroadcast.class, (TerminateBroadcast)->{terminate();});
     }
 }

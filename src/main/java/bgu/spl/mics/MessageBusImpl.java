@@ -1,6 +1,7 @@
 package bgu.spl.mics;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.services.StudentService;
+import bgu.spl.mics.example.messages.ExampleEvent;
 
 import java.util.Iterator;
 import java.util.concurrent.*;
@@ -24,12 +25,28 @@ public class MessageBusImpl implements MessageBus {
 		return microToMsg;
 	}
 
+	public boolean isSubscribedToEvent(Class<? extends ExampleEvent> aClass, MicroService mes) {
+		return messageToSubs.get(aClass).contains(mes);
+	}
+
+	public boolean isSubscribedToBroadcast(Class<? extends Broadcast> aClass, MicroService mes) {
+		return messageToSubs.get(aClass).contains(mes);
+	}
+
+	public boolean isRegisterd(MicroService mes) {
+		return microToMsg.get(mes)!=null;
+	}
+
+	public boolean isUnregisterd(MicroService mes) {
+		return microToMsg.get(mes) == null;
+	}
+
 	private static class SingletonHolder{
 		private static MessageBusImpl instance = new MessageBusImpl();
 	}
 
 	// Private constructor suppresses generation of a (public) default constructor
-	private MessageBusImpl() {
+	MessageBusImpl() {
 		microToMsg = new ConcurrentHashMap<MicroService, BlockingQueue<Message>>();
 		messageToSubs = new ConcurrentHashMap<Class<? extends Message>, BlockingQueue<MicroService>>();
 		eventToFuture = new ConcurrentHashMap<Event<?>,Future>();
@@ -64,10 +81,12 @@ public class MessageBusImpl implements MessageBus {
 
 	//BACK AND FIX THIS
 	public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) {
-		if(!messageToSubs.containsKey(type))
-			messageToSubs.putIfAbsent(type, new LinkedBlockingQueue<MicroService>());
+		synchronized (messageToSubs) {
+			if (!messageToSubs.containsKey(type))
+				messageToSubs.putIfAbsent(type, new LinkedBlockingQueue<MicroService>());
 
-		messageToSubs.get(type).add(m);
+			messageToSubs.get(type).add(m);
+		}
 	}
 
 	/**
@@ -104,6 +123,8 @@ public class MessageBusImpl implements MessageBus {
 
 	public void sendBroadcast(Broadcast b) {
 		synchronized (messageToSubs){
+			if(messageToSubs.get(b.getClass()) == null)
+				return;
 			BlockingQueue<MicroService> q = messageToSubs.get(b.getClass());//If empty he waits (That's how LinkedBlockingQueue works)
 			synchronized (q) {
 				try {

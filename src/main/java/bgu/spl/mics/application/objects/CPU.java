@@ -1,4 +1,6 @@
 package bgu.spl.mics.application.objects;
+import bgu.spl.mics.application.services.CPUService;
+
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,6 +27,10 @@ public class CPU {
         this.data = data;
     }
 
+    public int getCurrentTick() {
+        return currentTick;
+    }
+
     public void getUnprocessedDataBatch() throws InterruptedException {
 
         try {
@@ -34,6 +40,9 @@ public class CPU {
 
 //        System.out.println("CPU received DB from " +currentBatch.getSource().getType());
 //        System.out.println("CLUSTER'S dataToProcessList SIZE is "+cluster.getDataToProcessList().size());
+
+        if(currentBatch.getDataParts() == -1)
+           return;
 
         Data.Type dataType = currentBatch.data.getType();
             if (dataType == Data.Type.Images)

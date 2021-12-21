@@ -4,7 +4,6 @@ import bgu.spl.mics.Callback;
 import bgu.spl.mics.Event;
 import bgu.spl.mics.Message;
 import bgu.spl.mics.MicroService;
-import bgu.spl.mics.application.messages.TerminateBroadcast;
 import bgu.spl.mics.application.messages.TestModelEvent;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.messages.TrainModelEvent;
@@ -40,6 +39,8 @@ public class GPUService extends MicroService {
 
         //SUBSCRIBE TO TICK BROADCAST
         subscribeBroadcast(TickBroadcast.class, (TickBroadcast)->{gpu.updateTick();
+        if(TickBroadcast.isFinish() == true)
+            terminate();
         if(gpu.isCounting) {
             if (!gpu.getProcessedDataList().isEmpty()) {
                 DataBatch currentDB = gpu.getProcessedDataList().peek();
@@ -140,8 +141,6 @@ public class GPUService extends MicroService {
 
         }});
 
-        //SUBSCRIBE TO TERMINATE BROADCAST
-        subscribeBroadcast(TerminateBroadcast .class, (TerminateBroadcast)->{terminate();});
 
     }
 }

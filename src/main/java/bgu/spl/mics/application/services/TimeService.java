@@ -1,7 +1,8 @@
 package bgu.spl.mics.application.services;
 
+import bgu.spl.mics.Broadcast;
 import bgu.spl.mics.MicroService;
-import bgu.spl.mics.application.messages.TerminateBroadcast;
+import bgu.spl.mics.application.CRMSRunner;
 import bgu.spl.mics.application.messages.TickBroadcast;
 
 import java.util.Timer;
@@ -36,8 +37,11 @@ public class TimeService extends MicroService{
 				if(currentTime == duration)
 					//SEND TERMINATE BROADCAST
 				{
+
 					try {
-						sendBroadcast(new TerminateBroadcast());
+						TickBroadcast b = new TickBroadcast();
+						b.setFinish(true);
+						sendBroadcast(b);
 						terminate();
 					} catch (InterruptedException e) {
 						e.printStackTrace();

@@ -1,7 +1,6 @@
 package bgu.spl.mics.application;
-import bgu.spl.mics.StrToInt;
-import java.io.FileReader;
-import java.io.IOException;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +17,6 @@ import com.google.gson.JsonObject;
  */
 public class CRMSRunner {
     public static int gpuSize = 0;
-
     public static void main(String[] args) throws IOException, InterruptedException {
 
         Cluster cluster = Cluster.getInstance();
@@ -99,10 +97,110 @@ public class CRMSRunner {
 
 
 
+
+
+        ArrayList<Thread> arr = new ArrayList<>();
+
         for (int i = 0; i < microServicesList.size(); i++) {
             Thread thread = new Thread(microServicesList.get(i));
             threadList.add(thread);
             thread.start();
+            arr.add(thread);
         }
-}}
+        for(int i=0; i<microServicesList.size(); i++){
+            arr.get(i).join();
+        }
+
+
+        File file = new File("output.json");
+        FileWriter writer = new FileWriter(file);
+        PrintWriter print = new PrintWriter(writer);
+        print.println("{");
+        print.println("    \"students\": [");
+        int studCount = 0;
+        for(Student student: studentsList){
+            studCount+=1;
+            print.println("        {");
+            print.println("       \"Name\": \"" + student.getName() + "\",");
+            print.println("       \"Department\": \"" + student.getDepartment() + "\",");
+            print.println("       \"Status\": \"" + student.getStatus() + "\",");
+            print.println("          \"Publications\": " + student.getPublications() + ",");
+            print.println("          \"PapersRead\": " + student.getPapersRead() + ",");
+            print.println("          \"TrainedModels\": [");
+            int numofModel = 0;
+            for(Model model: student.getListOfModels()){
+                if(model.getStatus()== Model.Status.Tested || model.getStatus()== Model.Status.Trained)
+                    numofModel+=1;
+            }
+            int count = 0;
+            for(Model model: student.getListOfModels()){
+                if(model.getStatus()== Model.Status.Tested || model.getStatus()== Model.Status.Trained) {
+                    count+=1;
+                    print.println("              {");
+                    print.println("                  \"name\": \"" + model.getName() + "\",");
+                    print.println("                  \"data\": {");
+                    print.println("                        \"type\": \"" + model.getData().getType() + "\",");
+                    print.println("                        \"size\": " + model.getData().getSize());
+                    print.println("                  },");
+                    print.println("                  \"status\": \"" + model.getStatus() + "\",");
+                    print.println("                  \"results\": \"" + model.getResult() + "\"");
+                    if(count==numofModel)
+                        print.println("              }");
+                    else
+                        print.println("              },");
+                }
+
+            }
+            print.println("            ]");
+            if(studCount==studentsList.size())
+                print.println("        }");
+            else
+                print.println("        },");
+        }
+        print.println("    ],");
+        print.println("    \"conferences\": [");
+        int confCount = 0;
+        for(ConferenceInformation conference: ConferencesList){
+            confCount+=1;
+            print.println("        {");
+            print.println("          \"name\": \"" + conference.getName() + "\",");
+            print.println("          \"date\": " + conference.getDate() + ",");
+            print.println("          \"publications\": [");
+            int count = 0;
+            for(Model model: conference.getSuccessfulModels()){
+                count+=1;
+                print.println("              {");
+                print.println("                  \"name\": \"" + model.getName() + "\",");
+                print.println("                  \"data\": {");
+                print.println("                        \"type\": \"" + model.getData().getType() + "\",");
+                print.println("                        \"size\": " + model.getData().getSize());
+                print.println("                  },");
+                print.println("                  \"status\": \"" + model.getStatus() + "\",");
+                print.println("                  \"results\": \"" + model.getResult() + "\"");
+                if(count== conference.getSuccessfulModels().size())
+                    print.println("              }");
+                else
+                    print.println("              },");
+            }
+            print.println("          ]");
+            if(confCount==ConferencesList.size())
+                print.println("        }");
+            else
+                print.println("        },");
+        }
+        print.println("    ],");
+        print.println("    \"cpuTimeUsed\":" + cluster.Statistics[2] + ",");
+        print.println("    \"gpuTimeUsed\":" + cluster.Statistics[3].toString() + ",");
+        print.println("    \"batchesProcessed\":" + cluster.Statistics[1]);
+        print.println("}");
+        print.close();
+        writer.close();
+    }
+}
+
+
+
+
+
+
 

@@ -5,8 +5,18 @@ import bgu.spl.mics.Event;
 
 public class TickBroadcast implements Broadcast {
 
-int i;
+    boolean finish;
+
     public TickBroadcast(){
-this.i = 0;
+        this.finish = false;
     }
+
+    public void setFinish(boolean finish) {
+        this.finish = finish;
+    }
+
+    public boolean isFinish() {
+        return finish;
+    }
+
 }
