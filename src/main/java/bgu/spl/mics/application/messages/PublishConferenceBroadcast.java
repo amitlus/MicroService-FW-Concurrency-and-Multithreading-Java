@@ -8,14 +8,14 @@ import java.util.ArrayList;
 
 public class PublishConferenceBroadcast implements Broadcast {
 
-    ArrayList<Model> successfullModels;
+    ArrayList<Model> sucessfullModels;
     public PublishConferenceBroadcast(ArrayList<Model> successfullModels)
     {
-        this.successfullModels = successfullModels;
+        this.sucessfullModels = successfullModels;
     };
 
-    public ArrayList<Model> getSuccessfullModels() {
-        return successfullModels;
+    public ArrayList<Model> getSucessfullModels() {
+        return sucessfullModels;
     }
 
 

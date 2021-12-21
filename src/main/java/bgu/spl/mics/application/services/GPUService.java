@@ -8,9 +8,12 @@ import bgu.spl.mics.application.messages.TerminateBroadcast;
 import bgu.spl.mics.application.messages.TestModelEvent;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.messages.TrainModelEvent;
+import bgu.spl.mics.application.objects.Cluster;
+import bgu.spl.mics.application.objects.DataBatch;
 import bgu.spl.mics.application.objects.GPU;
 import bgu.spl.mics.application.objects.Model;
 
+import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 
 /**
@@ -38,31 +41,45 @@ public class GPUService extends MicroService {
         //SUBSCRIBE TO TICK BROADCAST
         subscribeBroadcast(TickBroadcast.class, (TickBroadcast)->{gpu.updateTick();
         if(gpu.isCounting) {
-            if(!gpu.getProcessedDataList().isEmpty()) {
-                if (gpu.getProcessedDataList().peek().getTrainingTime() > 0)
-                    gpu.trainDataBatch(gpu.getProcessedDataList().peek());
-                if (gpu.getProcessedDataList().peek().getTrainingTime() == 0) {
-                    gpu.getTrainedDataList().add(gpu.getProcessedDataList().remove());
+            if (!gpu.getProcessedDataList().isEmpty()) {
+                DataBatch currentDB = gpu.getProcessedDataList().peek();
+                if (currentDB.getTrainingTime() > 0) {
+                    gpu.trainDataBatch(currentDB);
                     System.out.println("Batch TRAINED. Send DB TO PROCESS");
-                    gpu.sendDataBatch();
                 }
-                if (gpu.isCounting == false)
-                    msb.complete(trainEvent, gpu.getModel().getStatus());
+
+                //AFTER WE FINISH TRAINING A DATA BATCH, WE REMOVE IT FROM THE PROCESSED LIST AND ADD IT TO THE TRAINED LIST
+                if (currentDB.getTrainingTime() == 0) {
+                    gpu.getTrainedDataList().add(gpu.getProcessedDataList().remove());
+
+                    //AFTER WE FINISH TRAINING A DATA BATCH, WE CHECK IF WE FINISHED TRAINING ALL THE MODEL'S DATA BATCHES
+                    if (gpu.getTrainedDataList().size() == currentDB.getDataParts()) {
+                        //UPDATE THE LIST OF TRAINED DATA IN THE CLUSTER'S STATISTICS
+                        ArrayList<String> stat = (ArrayList<String>) Cluster.Statistics[0];
+                        stat.add(gpu.getModel().getName());
+                        Cluster.Statistics[0] = stat;
+
+                        //CHANGING THE STATUS AND NOTIFY WE FINISHED COUNTING
+                        gpu.getModel().setStatus(Model.Status.Trained);
+                        System.out.println("MODEL " + gpu.getModel().getName() + " TRAINED");
+                        gpu.getTrainedDataList().clear();
+                        gpu.setCounting(false);
+                    }
+                }
+                if(gpu.isCounting)
+                     gpu.sendDataBatch();
             }
-            else{
+            if (gpu.isCounting == false)
+                msb.complete(trainEvent, gpu.getModel().getStatus());
+
+            else {
                 gpu.sendDataBatch();
                 Message e;
-                while(!gpu.getFastMessages().isEmpty()) {
+                while (!gpu.getFastMessages().isEmpty()) {
                     e = gpu.getFastMessages().remove();
                     Callback<Message> call = (Callback<Message>) this.getMsgToCalls().get(e.getClass());
                     call.call(e);
                 }
-                if(!gpu.getTrainEvents().isEmpty()) {
-                    trainEvent = (Event<TrainModelEvent>) gpu.getTrainEvents().remove();
-                    Callback<Message> call = (Callback<Message>) this.getMsgToCalls().get(trainEvent.getClass());
-                    call.call(trainEvent);
-                }
-
             }
         }
 
@@ -74,9 +91,9 @@ public class GPUService extends MicroService {
                 call.call(e);
             }
             if(!gpu.getTrainEvents().isEmpty()) {
-                trainEvent = (Event<TrainModelEvent>) gpu.getTrainEvents().remove();
-                Callback<Message> call = (Callback<Message>) this.getMsgToCalls().get(trainEvent.getClass());
-                call.call(trainEvent);
+                e = (Event<TrainModelEvent>) gpu.getTrainEvents().remove();
+                Callback<Message> call = (Callback<Message>) this.getMsgToCalls().get(e.getClass());
+                call.call(e);
             }
         }
         });
@@ -87,6 +104,7 @@ public class GPUService extends MicroService {
             if(gpu.isCounting)
                 gpu.getTrainEvents().add(TrainModelEvent);
             else{
+                trainEvent = TrainModelEvent;
             gpu.setModel(TrainModelEvent.model);
             gpu.setCounting(true);
             BlockingQueue<Message> queue = gpu.getMsb().getMicroToMsg().get(this);
@@ -109,8 +127,9 @@ public class GPUService extends MicroService {
             if(gpu.isCounting)
                 gpu.getFastMessages().add(TestModelEvent);
             else{
-            gpu.Test();
-            msb.complete(TestModelEvent, gpu.getModel().getResult());
+                gpu.Test();
+                System.out.println(gpu.getModel().getName()+" TESTED and the RESULT is "+gpu.getModel().getResult());
+                msb.complete(TestModelEvent, gpu.getModel().getResult());
 
         }});
 

@@ -75,10 +75,13 @@ public class MessageBusImpl implements MessageBus {
 	 */
 	@Override
 	public synchronized  <T> void complete(Event<T> e, T result) {
-		if (eventToFuture.containsKey(e))
-			eventToFuture.get(e).resolve(result);
-		else
-			throw new IllegalArgumentException("Event was not added to Event-Future hash map");
+
+		synchronized (eventToFuture) {
+			if (eventToFuture.containsKey(e))
+				eventToFuture.get(e).resolve(result);
+			else
+				throw new IllegalArgumentException("Event was not added to Event-Future hash map");
+		}
 	}
 
 	/**
@@ -99,17 +102,21 @@ public class MessageBusImpl implements MessageBus {
 	 */
 
 	public void sendBroadcast(Broadcast b) {
-		BlockingQueue<MicroService> q = messageToSubs.get(b.getClass());//If empty he waits (That's how LinkedBlockingQueue works)
-		try {
-			Iterator<MicroService> iter = q.iterator();
-			while (iter.hasNext())
-				microToMsg.get(iter.next()).add(b);
+		synchronized (messageToSubs){
+			BlockingQueue<MicroService> q = messageToSubs.get(b.getClass());//If empty he waits (That's how LinkedBlockingQueue works)
+			synchronized (q) {
+				try {
+					Iterator<MicroService> iter = q.iterator();
+					while (iter.hasNext())
+						microToMsg.get(iter.next()).add(b);
 
-		} catch (NullPointerException npe){
-		System.out.println("no one has ever subscribed to this kind of broadcast");
-		npe.printStackTrace();
-	}
+				} catch (NullPointerException npe) {
+					System.out.println("no one has ever subscribed to this kind of broadcast");
+					npe.printStackTrace();
+				}
+			}
 		}
+	}
 
 
 	/**
@@ -136,9 +143,11 @@ public class MessageBusImpl implements MessageBus {
 				return null;
 			else {
 				Future<T> future = new Future<T>();
-				if(eventToFuture.putIfAbsent(e, future)!=null)
-					future = eventToFuture.get(e);
-				MicroService handler = messageToSubs.get(e.getClass()).remove(); //Takes the head of the queue without removing it. Return null if empty
+				synchronized (eventToFuture) {
+					if (eventToFuture.putIfAbsent(e, future) != null)
+						future = eventToFuture.get(e);
+				}
+					MicroService handler = messageToSubs.get(e.getClass()).remove(); //Takes the head of the queue without removing it. Return null if empty
 				//It won't return null because we already ensure that the queue is not empty
 				microToMsg.get(handler).add(e); // adding the event to the handler message queue
 				messageToSubs.get(e.getClass()).add(handler);

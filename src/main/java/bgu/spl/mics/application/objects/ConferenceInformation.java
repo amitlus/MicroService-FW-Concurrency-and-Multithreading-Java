@@ -11,14 +11,12 @@ public class ConferenceInformation {
     private String name;
     private int date;
     private int currentTick;
-
-
-
     ArrayList<Model> successfulModels;
 
     public ConferenceInformation(String name, int date){
         this.name = name;
         this.date = date;
+        this.successfulModels = new ArrayList<>();
     }
 
     public void addSuccessfulModel(Model modelName){

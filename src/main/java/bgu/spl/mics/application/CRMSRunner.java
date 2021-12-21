@@ -75,7 +75,8 @@ public class CRMSRunner {
 
 
         for (int i = 0; i<arrayOfGpus.size(); i++){ //create gpus
-            String gpuType = arrayOfGpus.get(i).toString();
+            String gpuType = arrayOfGpus.get(i).getAsString();
+            System.out.println(gpuType);
             GPU.Type type = GPU.getTypeFromString(gpuType);
             GPU gpu = new GPU(type, cluster) ;
             cluster.getGPUS().add(gpu);

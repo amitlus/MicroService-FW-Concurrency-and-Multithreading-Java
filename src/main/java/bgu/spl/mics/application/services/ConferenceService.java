@@ -37,6 +37,7 @@ public class ConferenceService extends MicroService {
         //SUBSCRIBE TO PUBLISH RESULT EVENT
         subscribeEvent(PublishResultsEvent.class, (PublishResultsEvent)->{conferenceInformation.addSuccessfulModel(PublishResultsEvent.getModel());
         msb.complete(PublishResultsEvent, true);
+            System.out.println("UPDATED RESULTS");
         });
 
 

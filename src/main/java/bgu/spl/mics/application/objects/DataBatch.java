@@ -32,6 +32,10 @@ public class DataBatch {
         return trainingTime;
     }
 
+    public int getDataParts() {
+        return dataParts;
+    }
+
     public Data getData(){
         return data;
     }

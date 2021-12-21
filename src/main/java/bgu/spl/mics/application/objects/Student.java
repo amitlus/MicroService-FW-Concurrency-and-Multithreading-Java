@@ -83,12 +83,13 @@ public class Student {
     }
 
     public void updateStudentResume(ArrayList<Model> sucModels) {
-        for(int i=0; i<successfulModels.size(); i++) {
+        for(int i=0; i<sucModels.size(); i++) {
             if (successfulModels.contains(sucModels.get(i)))
                 publications++;
             else
                 papersRead++;
         }
+        System.out.println("STUDENT's "+getName()+" RESUME UPDATED");
      }
 
     public void terminate() {

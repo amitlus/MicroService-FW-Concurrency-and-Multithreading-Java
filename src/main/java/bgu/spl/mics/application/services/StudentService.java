@@ -22,13 +22,11 @@ public class StudentService extends MicroService {
 
     Student student;
     ArrayList<Model> listOfModels;
-    boolean notNull;
+    boolean notNull = false;
     public StudentService(String name, Student student) {
         super(name);
         this.student = student;
-        this.listOfModels = student.getListOfModels();
-        notNull = false;
-;
+        this.listOfModels = student.getListOfModels();;
     }
 
     @Override
@@ -73,7 +71,7 @@ public class StudentService extends MicroService {
 
 
         //SUBSCRIBE TO PUBLISH CONFERENCE BROADCAST
-        subscribeBroadcast(PublishConferenceBroadcast.class, (PublishConferenceBroadcast)->{student.updateStudentResume(PublishConferenceBroadcast.getSuccessfullModels());
+        subscribeBroadcast(PublishConferenceBroadcast.class, (PublishConferenceBroadcast)->{student.updateStudentResume(PublishConferenceBroadcast.getSucessfullModels());
         });
 
 

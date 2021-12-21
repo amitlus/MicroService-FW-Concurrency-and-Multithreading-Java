@@ -58,13 +58,13 @@ public class GPU {
         this.type = type;
         this.model = null;
         if (type == Type.RTX3090) {
-            vramSpace = 1;//32
+            vramSpace = 32;//32
             trainingTime = 1;
         } else if (type == Type.RTX2080) {
-            vramSpace = 1;//16
+            vramSpace = 16;//16
             trainingTime = 2;
         } else if (type == Type.GTX1080) {
-            vramSpace = 1;//8
+            vramSpace = 8;//8
             trainingTime = 4;
         }
     }
@@ -89,6 +89,7 @@ public class GPU {
             else
                 model.setResult(Bad);
             }
+        model.setStatus(Model.Status.Tested);
         }
 
     public void updateTick() {
@@ -96,9 +97,9 @@ public class GPU {
     }
 
     public static Type getTypeFromString(String gpuType) {
-        if(gpuType == "RTX3090")
+        if(gpuType.equals("RTX3090"))
             return Type.RTX3090;
-        else if(gpuType == "RTX2080")
+        else if(gpuType.equals("RTX2080"))
             return Type.RTX2080;
         else
             return Type.GTX1080;
@@ -138,8 +139,8 @@ public class GPU {
     //FOR THE PROCESSED BATCH TO RETURN
     public void sendDataBatch() throws InterruptedException {
         while (!unprocessedDataList.isEmpty() & vramSpace > 0) {
+            System.out.println("GPU " + unprocessedDataList.peek().getSource().getType() + " sent UNPROCESSED DB " + model.getName());
             DataBatch dataBatch = unprocessedDataList.poll();
-            System.out.println("GPU " + unprocessedDataList.peek().source.getType() + " sent UNPROCESSED DB " + model.getName());
             vramSpace--;
             cluster.getDataToProcessList().add(dataBatch);
             System.out.println("CLUSTER'S DataToProcessList SIZE is " + cluster.getDataToProcessList().size());
@@ -178,30 +179,33 @@ public class GPU {
 
         public void trainDataBatch(DataBatch dataBatch) {
             System.out.println("GPU started TRAINING and the TIME LEFT is "+dataBatch.trainingTime);
+            //CHECK IF WE JUST START TRAINING THE CURRENT DATA BUTCH
             if(startingTime == 0)
                 startingTime = currentTick;
-            //dataBatch.decreaseTrainingTimeLeft();
+
             GPUTimeUnits++;
+
+            //CHECK IF WE FINISH TRAINING IT
             if (currentTick - startingTime == dataBatch.getTrainingTime()) {
                 dataBatch.trainingTime = 0;
-               //AFTER WE FINISH TRAINING A DATA BATCH, WE REMOVE IT FROM THE PROCESSED LIST AND ADD IT TO THE TRAINED LIST
 
                //NOW WE CAN SEND ANOTHER DATA BATCH TO THE CLUSTER
                 vramSpace++;
-                //sendDataBatch();
+                startingTime = 0;
+                System.out.println("GPU "+getType()+" FINISHED TRAINING DB");
 
                 //AFTER WE FINISH TRAINING A DATA BATCH, WE CHECK IF WE FINISHED TRAINING ALL THE MODEL'S DATA BATCHES
-                if (TrainedDataList.size() == dataBatch.dataParts) {
-                    //UPDATE THE LIST OF TRAINED DATA IN THE CLUSTER'S STATISTICS
-                    ArrayList<String> stat = (ArrayList<String>) Cluster.Statistics[0];
-                    stat.add(model.getName());
-                    Cluster.Statistics[0] = stat;
-
-                    //CHANGING THE STATUS AND NOTIFY WE FINISHED COUNTING
-                    model.setStatus(Model.Status.Trained);
-                    System.out.println("MODEL "+getModel().getName()+" TRAINED");
-                    isCounting = false;
-                }
+//                if (TrainedDataList.size() == dataBatch.dataParts) {
+//                    //UPDATE THE LIST OF TRAINED DATA IN THE CLUSTER'S STATISTICS
+//                    ArrayList<String> stat = (ArrayList<String>) Cluster.Statistics[0];
+//                    stat.add(model.getName());
+//                    Cluster.Statistics[0] = stat;
+//
+//                    //CHANGING THE STATUS AND NOTIFY WE FINISHED COUNTING
+//                    model.setStatus(Model.Status.Trained);
+//                    System.out.println("MODEL "+getModel().getName()+" TRAINED");
+//                    isCounting = false;
+//                }
             }
         }
 
