@@ -41,30 +41,36 @@ public class GPU {
     private int currentTick;
     private int trainingTime;
     int GPUTimeUnits;
+    int startingTime;
 
 
     public boolean isCounting =  false;
 
     public GPU(Type type, Cluster cluster) {
-        unprocessedDataList = new LinkedBlockingQueue<>();
-        processedDataList = new LinkedBlockingQueue<>();
-        TrainedDataList = new LinkedBlockingQueue<>();
+        unprocessedDataList = new LinkedBlockingQueue<DataBatch>();
+        processedDataList = new LinkedBlockingQueue<DataBatch>();
+        TrainedDataList = new LinkedBlockingQueue<DataBatch>();
         this.currentTick = 0;
+        this.startingTime = 0;
         fastMessages = new LinkedBlockingQueue<Message>();
         trainEvents = new LinkedBlockingQueue<>();
         this.cluster = Cluster.getInstance();
         this.type = type;
         this.model = null;
         if (type == Type.RTX3090) {
-            vramSpace = 32;
+            vramSpace = 1;//32
             trainingTime = 1;
         } else if (type == Type.RTX2080) {
-            vramSpace = 16;
+            vramSpace = 1;//16
             trainingTime = 2;
         } else if (type == Type.GTX1080) {
-            vramSpace = 8;
+            vramSpace = 1;//8
             trainingTime = 4;
         }
+    }
+
+    public int getVramSpace() {
+        return vramSpace;
     }
 
     public void Test() {
@@ -130,13 +136,25 @@ public class GPU {
     //SENDING UNPROCESSED DATA BATCHES TO THE CLUSTER
     //WHEN SENDING WE AUTOMATICALLY UPDATE THE VRAM SIZE, THIS WAY WE ENSURE THAT THERE WILL BE SPACE
     //FOR THE PROCESSED BATCH TO RETURN
-    public void sendDataBatch() {
-        while(!unprocessedDataList.isEmpty() & vramSpace>0) {
-            DataBatch dataBatch = unprocessedDataList.remove();
-            vramSpace --;
+    public void sendDataBatch() throws InterruptedException {
+        while (!unprocessedDataList.isEmpty() & vramSpace > 0) {
+            DataBatch dataBatch = unprocessedDataList.poll();
+            System.out.println("GPU " + unprocessedDataList.peek().source.getType() + " sent UNPROCESSED DB " + model.getName());
+            vramSpace--;
             cluster.getDataToProcessList().add(dataBatch);
+            System.out.println("CLUSTER'S DataToProcessList SIZE is " + cluster.getDataToProcessList().size());
         }
     }
+//        if(vramSpace == 0) {
+//            try {
+//                trainDataBatch(processedDataList.take());
+//                System.out.println("GPU'S DataProcessed SIZE is "+processedDataList.size());
+//
+//            }catch(NullPointerException e) {} catch (InterruptedException e) {
+//                e.printStackTrace();
+//            };
+
+
 
     //MAKE A LIST OF DATA BATCHES FROM THE DATA
     public void makeDataList() {
@@ -159,17 +177,29 @@ public class GPU {
 
 
         public void trainDataBatch(DataBatch dataBatch) {
-            model.setStatus(Model.Status.Training);
-            dataBatch.decreaseTrainingTimeLeft();
+            System.out.println("GPU started TRAINING and the TIME LEFT is "+dataBatch.trainingTime);
+            if(startingTime == 0)
+                startingTime = currentTick;
+            //dataBatch.decreaseTrainingTimeLeft();
             GPUTimeUnits++;
-            if (dataBatch.getTrainingTimeLeft() == 0) {
+            if (currentTick - startingTime == dataBatch.getTrainingTime()) {
+                dataBatch.trainingTime = 0;
+               //AFTER WE FINISH TRAINING A DATA BATCH, WE REMOVE IT FROM THE PROCESSED LIST AND ADD IT TO THE TRAINED LIST
+
+               //NOW WE CAN SEND ANOTHER DATA BATCH TO THE CLUSTER
                 vramSpace++;
+                //sendDataBatch();
+
                 //AFTER WE FINISH TRAINING A DATA BATCH, WE CHECK IF WE FINISHED TRAINING ALL THE MODEL'S DATA BATCHES
                 if (TrainedDataList.size() == dataBatch.dataParts) {
+                    //UPDATE THE LIST OF TRAINED DATA IN THE CLUSTER'S STATISTICS
                     ArrayList<String> stat = (ArrayList<String>) Cluster.Statistics[0];
                     stat.add(model.getName());
+                    Cluster.Statistics[0] = stat;
+
+                    //CHANGING THE STATUS AND NOTIFY WE FINISHED COUNTING
                     model.setStatus(Model.Status.Trained);
-                    System.out.println("MODEL TRAINED "+getModel().getName());
+                    System.out.println("MODEL "+getModel().getName()+" TRAINED");
                     isCounting = false;
                 }
             }

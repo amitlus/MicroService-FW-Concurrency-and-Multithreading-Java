@@ -29,27 +29,29 @@ public class CPU {
 
         try {
             currentBatch = cluster.getDataToProcessList().take();
-        }catch(NullPointerException e){}
 
-        isCounting = true;
+        } catch (InterruptedException e) {}
+
+        System.out.println("CPU received DB from " +currentBatch.getSource().getType());
+        System.out.println("CLUSTER'S dataToProcessList SIZE is "+cluster.getDataToProcessList().size());
 
         Data.Type dataType = currentBatch.data.getType();
-        if(dataType == Data.Type.Images)
-            processTime = (32/cores)*4;
-        else if(dataType == Data.Type.Text)
-            processTime = (32/cores)*2;
-        else
-            processTime = (32/cores);
-    }
+            if (dataType == Data.Type.Images)
+                processTime = (32 / cores) * 4;
+            else if (dataType == Data.Type.Text)
+                processTime = (32 / cores) * 2;
+            else
+                processTime = (32 / cores);
+            isCounting = true;
+        }
+
 
     //WHEN FINISH PROCESSING DATA BATCH, IMMEDIATELY SENDS IT TO THE CLUSTER- THEN TO THE GPU
-    public void sendDataBatch() {
+    public void sendDataBatch() throws InterruptedException {
+            System.out.println("CPU sent PROCESSED db "+currentBatch.getSource().getModel().getName());
             cluster.sendProcessedDataBatch(currentBatch.getSource(), currentBatch);
         }
 
-    public void setCounting(boolean counting) {
-        isCounting = counting;
-    }
 
     public boolean isCounting() {
         return isCounting;

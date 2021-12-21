@@ -1,4 +1,5 @@
 package bgu.spl.mics.application.objects;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import java.util.ArrayList;
@@ -12,7 +13,7 @@ import java.util.ArrayList;
  */
 public class Cluster {
 
-	private static LinkedBlockingQueue<DataBatch> dataToProcess;
+	private BlockingQueue<DataBatch> dataToProcess;
 	private ArrayList<GPU> GPUArray;
 	private ArrayList<CPU> CPUArray;
 	public static Object[] Statistics = new Object[4];
@@ -47,15 +48,18 @@ public class Cluster {
 		return CPUArray;
 	}
 
-	public LinkedBlockingQueue<DataBatch> getDataToProcessList() {
+	public BlockingQueue<DataBatch> getDataToProcessList() {
 		return dataToProcess;
 	}
 
 
 	//SENDS BACK THE PROCESSED DATA BATCH TO ITS SOURCE GPU
-	public void sendProcessedDataBatch(GPU gpu, DataBatch dataBatch) {
+	public void sendProcessedDataBatch(GPU gpu, DataBatch dataBatch) throws InterruptedException {
 		Statistics[1] = (int)Statistics[1] + 1;
-		System.out.println(Statistics[1]);
+		//System.out.println(Statistics[1]);
+		System.out.println("GPU'S dataProcessedList SIZE is "+gpu.processedDataList.size());
 		gpu.getProcessedDataList().add(dataBatch);
+		System.out.println("GPU'S dataProcessedList SIZE is "+gpu.processedDataList.size());
+
 	}
 }

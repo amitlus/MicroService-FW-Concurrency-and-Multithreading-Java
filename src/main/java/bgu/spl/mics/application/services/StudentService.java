@@ -49,8 +49,11 @@ public class StudentService extends MicroService {
 
         if(!listOfModels.isEmpty()){
             //SEND TRAIN MODEL EVENT
-            if(student.listOfModels.get(0).getStatus()== Model.Status.PreTrained)
+            if(student.listOfModels.get(0).getStatus()== Model.Status.PreTrained){
+                listOfModels.get(0).setStatus(Model.Status.Training);
                 sendEvent(new TrainModelEvent(listOfModels.get(0)));
+
+            }
 
                 //SEND TEST MODEL EVENT
             else if(student.listOfModels.get(0).getStatus()== Model.Status.Trained)

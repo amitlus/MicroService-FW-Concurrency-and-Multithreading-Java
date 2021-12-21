@@ -14,22 +14,22 @@ public class DataBatch {
     int start_index;
     GPU source;
     int dataParts;
-    int trainingTimeLeft;
+    int trainingTime;
 
     public DataBatch(Data data, int start_index, GPU source, int dataParts, int trainingTime){
         this.data = data;
         this.start_index = start_index;
         this.dataParts = dataParts;
-        this.trainingTimeLeft = trainingTimeLeft;
+        this.trainingTime = trainingTime;
         this.source = source;
     }
 
     public void decreaseTrainingTimeLeft(){
-        trainingTimeLeft--;
+        trainingTime--;
     }
 
-    public int getTrainingTimeLeft(){
-        return trainingTimeLeft;
+    public int getTrainingTime(){
+        return trainingTime;
     }
 
     public Data getData(){
