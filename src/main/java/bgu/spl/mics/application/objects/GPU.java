@@ -89,7 +89,6 @@ public class GPU {
             else
                 model.setResult(Bad);
             }
-        model.setStatus(Model.Status.Tested);
         }
 
     public void updateTick() {
@@ -139,21 +138,13 @@ public class GPU {
     //FOR THE PROCESSED BATCH TO RETURN
     public void sendDataBatch() throws InterruptedException {
         while (!unprocessedDataList.isEmpty() & vramSpace > 0) {
-            System.out.println("GPU " + unprocessedDataList.peek().getSource().getType() + " sent UNPROCESSED DB " + model.getName());
+//            System.out.println("GPU " + unprocessedDataList.peek().getSource().getType() + " sent UNPROCESSED DB " + model.getName());
             DataBatch dataBatch = unprocessedDataList.poll();
             vramSpace--;
             cluster.getDataToProcessList().add(dataBatch);
-            System.out.println("CLUSTER'S DataToProcessList SIZE is " + cluster.getDataToProcessList().size());
+//            System.out.println("CLUSTER'S DataToProcessList SIZE is " + cluster.getDataToProcessList().size());
         }
     }
-//        if(vramSpace == 0) {
-//            try {
-//                trainDataBatch(processedDataList.take());
-//                System.out.println("GPU'S DataProcessed SIZE is "+processedDataList.size());
-//
-//            }catch(NullPointerException e) {} catch (InterruptedException e) {
-//                e.printStackTrace();
-//            };
 
 
 
@@ -178,7 +169,7 @@ public class GPU {
 
 
         public void trainDataBatch(DataBatch dataBatch) {
-            System.out.println("GPU started TRAINING and the TIME LEFT is "+dataBatch.trainingTime);
+//            System.out.println("GPU started TRAINING and the TIME LEFT is "+dataBatch.trainingTime);
             //CHECK IF WE JUST START TRAINING THE CURRENT DATA BUTCH
             if(startingTime == 0)
                 startingTime = currentTick;
@@ -192,20 +183,7 @@ public class GPU {
                //NOW WE CAN SEND ANOTHER DATA BATCH TO THE CLUSTER
                 vramSpace++;
                 startingTime = 0;
-                System.out.println("GPU "+getType()+" FINISHED TRAINING DB");
-
-                //AFTER WE FINISH TRAINING A DATA BATCH, WE CHECK IF WE FINISHED TRAINING ALL THE MODEL'S DATA BATCHES
-//                if (TrainedDataList.size() == dataBatch.dataParts) {
-//                    //UPDATE THE LIST OF TRAINED DATA IN THE CLUSTER'S STATISTICS
-//                    ArrayList<String> stat = (ArrayList<String>) Cluster.Statistics[0];
-//                    stat.add(model.getName());
-//                    Cluster.Statistics[0] = stat;
-//
-//                    //CHANGING THE STATUS AND NOTIFY WE FINISHED COUNTING
-//                    model.setStatus(Model.Status.Trained);
-//                    System.out.println("MODEL "+getModel().getName()+" TRAINED");
-//                    isCounting = false;
-//                }
+//                System.out.println("GPU "+getType()+" FINISHED TRAINING DB");
             }
         }
 

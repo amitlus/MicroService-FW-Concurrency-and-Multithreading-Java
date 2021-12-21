@@ -21,7 +21,7 @@ public class Student {
         MSc, PhD
     }
 
-    private int name;
+    private String name;
     private String department;
     private Degree status;
     private int publications = 0;
@@ -29,11 +29,9 @@ public class Student {
     public ArrayList<Model> listOfModels;
     public ArrayList<Model> successfulModels;
     public ArrayList<Model> failedModels;
-
     int currentTick;
 
-
-    public Student(int name, String department, Degree status){
+    public Student(String name, String department, Degree status){
         this.name = name;
         this.department = department;
         this.status = status;
@@ -42,7 +40,7 @@ public class Student {
         failedModels = new ArrayList<Model>();
     }
 
-    public int getName(){
+    public String getName(){
         return name;
     }
 

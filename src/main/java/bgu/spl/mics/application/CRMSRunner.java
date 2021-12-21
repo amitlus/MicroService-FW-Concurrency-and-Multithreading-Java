@@ -21,11 +21,6 @@ public class CRMSRunner {
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
-//        String s = "2";
-//        int i = StrToInt.stoi(s);
-//        System.out.println(i);
-
-
         Cluster cluster = Cluster.getInstance();
 
         List<MicroService> microServicesList = new ArrayList<>();
@@ -51,7 +46,7 @@ public class CRMSRunner {
             String studentDepartment = student.get("department").toString();
             String studentStatus = student.get("status").toString();
             JsonArray arrayOfModels = student.getAsJsonArray("models");
-            Student s = new Student(StrToInt.stoi(studentName), studentDepartment, studentStatus == "MSc" ? Student.Degree.MSc : Student.Degree.PhD);// fix status enum
+            Student s = new Student(studentName, studentDepartment, studentStatus == "MSc" ? Student.Degree.MSc : Student.Degree.PhD);// fix status enum
 
             for (int j=0;j<arrayOfModels.size();j++){
                 JsonObject model = arrayOfModels.get(j).getAsJsonObject();
@@ -76,7 +71,6 @@ public class CRMSRunner {
 
         for (int i = 0; i<arrayOfGpus.size(); i++){ //create gpus
             String gpuType = arrayOfGpus.get(i).getAsString();
-            System.out.println(gpuType);
             GPU.Type type = GPU.getTypeFromString(gpuType);
             GPU gpu = new GPU(type, cluster) ;
             cluster.getGPUS().add(gpu);

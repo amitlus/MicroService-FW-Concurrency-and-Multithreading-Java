@@ -45,7 +45,7 @@ public class GPUService extends MicroService {
                 DataBatch currentDB = gpu.getProcessedDataList().peek();
                 if (currentDB.getTrainingTime() > 0) {
                     gpu.trainDataBatch(currentDB);
-                    System.out.println("Batch TRAINED. Send DB TO PROCESS");
+//                    System.out.println("Batch TRAINED. Send DB TO PROCESS");
                 }
 
                 //AFTER WE FINISH TRAINING A DATA BATCH, WE REMOVE IT FROM THE PROCESSED LIST AND ADD IT TO THE TRAINED LIST
@@ -61,7 +61,7 @@ public class GPUService extends MicroService {
 
                         //CHANGING THE STATUS AND NOTIFY WE FINISHED COUNTING
                         gpu.getModel().setStatus(Model.Status.Trained);
-                        System.out.println("MODEL " + gpu.getModel().getName() + " TRAINED");
+                        System.out.println("MODEL " + gpu.getModel().getName() +" OF STUDENT "+gpu.getModel().getStudent().getName()+ " TRAINED by GPU "+gpu.getType());
                         gpu.getTrainedDataList().clear();
                         gpu.setCounting(false);
                     }
@@ -84,19 +84,26 @@ public class GPUService extends MicroService {
         }
 
         else {
-            Message e;
-            while(!gpu.getFastMessages().isEmpty()) {
-                e = gpu.getFastMessages().remove();
-                Callback<Message> call = (Callback<Message>) this.getMsgToCalls().get(e.getClass());
-                call.call(e);
+            Message e = null;
+            synchronized (gpu.getFastMessages()) {
+                while (!gpu.getFastMessages().isEmpty()) {
+                    e = gpu.getFastMessages().remove();
+                    Callback<Message> call = (Callback<Message>) this.getMsgToCalls().get(e.getClass());
+                    call.call(e);
+                }
             }
-            if(!gpu.getTrainEvents().isEmpty()) {
-                e = (Event<TrainModelEvent>) gpu.getTrainEvents().remove();
+            synchronized (gpu.getTrainEvents()) {
+                if (!gpu.getTrainEvents().isEmpty()) {
+                    e = (Event<TrainModelEvent>) gpu.getTrainEvents().remove();
+                }
+            }
+            if (e != null) {
                 Callback<Message> call = (Callback<Message>) this.getMsgToCalls().get(e.getClass());
                 call.call(e);
             }
         }
-        });
+        }
+        );
 
 
         //SUBSCRIBE TO TRAIN EVENTS

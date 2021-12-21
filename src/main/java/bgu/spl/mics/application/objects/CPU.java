@@ -32,8 +32,8 @@ public class CPU {
 
         } catch (InterruptedException e) {}
 
-        System.out.println("CPU received DB from " +currentBatch.getSource().getType());
-        System.out.println("CLUSTER'S dataToProcessList SIZE is "+cluster.getDataToProcessList().size());
+//        System.out.println("CPU received DB from " +currentBatch.getSource().getType());
+//        System.out.println("CLUSTER'S dataToProcessList SIZE is "+cluster.getDataToProcessList().size());
 
         Data.Type dataType = currentBatch.data.getType();
             if (dataType == Data.Type.Images)
@@ -48,7 +48,7 @@ public class CPU {
 
     //WHEN FINISH PROCESSING DATA BATCH, IMMEDIATELY SENDS IT TO THE CLUSTER- THEN TO THE GPU
     public void sendDataBatch() throws InterruptedException {
-            System.out.println("CPU sent PROCESSED db "+currentBatch.getSource().getModel().getName());
+//            System.out.println("CPU sent PROCESSED db "+currentBatch.getSource().getModel().getName());
             cluster.sendProcessedDataBatch(currentBatch.getSource(), currentBatch);
         }
 

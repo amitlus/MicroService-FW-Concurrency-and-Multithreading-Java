@@ -57,9 +57,9 @@ public class Cluster {
 	public void sendProcessedDataBatch(GPU gpu, DataBatch dataBatch) throws InterruptedException {
 		Statistics[1] = (int)Statistics[1] + 1;
 		//System.out.println(Statistics[1]);
-		System.out.println("GPU'S dataProcessedList SIZE is "+gpu.processedDataList.size());
+//		System.out.println("GPU'S dataProcessedList SIZE is "+gpu.processedDataList.size());
 		gpu.getProcessedDataList().add(dataBatch);
-		System.out.println("GPU'S dataProcessedList SIZE is "+gpu.processedDataList.size());
+//		System.out.println("GPU'S dataProcessedList SIZE is "+gpu.processedDataList.size());
 
 	}
 }

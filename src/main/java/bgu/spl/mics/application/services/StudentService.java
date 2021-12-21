@@ -49,17 +49,22 @@ public class StudentService extends MicroService {
             //SEND TRAIN MODEL EVENT
             if(student.listOfModels.get(0).getStatus()== Model.Status.PreTrained){
                 listOfModels.get(0).setStatus(Model.Status.Training);
+                System.out.println("NEW MODEL "+listOfModels.get(0).getName()+" SENT by "+student.getName());
                 sendEvent(new TrainModelEvent(listOfModels.get(0)));
 
             }
 
                 //SEND TEST MODEL EVENT
-            else if(student.listOfModels.get(0).getStatus()== Model.Status.Trained)
+            else if(student.listOfModels.get(0).getStatus()== Model.Status.Trained) {
+                System.out.println("TEST EVENT OF "+listOfModels.get(0).getName()+" SENT");
                 sendEvent(new TestModelEvent());
+                student.listOfModels.get(0).setStatus(Model.Status.Tested);
 
+            }
                 //SEND PUBLISH RESULT EVENT
             else if(student.listOfModels.get(0).getStatus()== Model.Status.Tested) {
                 if(listOfModels.get(0).getResult() == Model.Results.Good) {
+                    System.out.println("PUBLISH RESULT OF "+listOfModels.get(0).getName()+" SENT");
                     sendEvent(new PublishResultsEvent(student.listOfModels.get(0)));
                     student.successfulModels.add(student.listOfModels.remove(0));
                 }
