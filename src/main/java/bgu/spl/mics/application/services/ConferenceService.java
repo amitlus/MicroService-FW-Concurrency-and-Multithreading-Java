@@ -26,13 +26,13 @@ public class ConferenceService extends MicroService {
     protected void initialize() throws InterruptedException {
         //SUBSCRIBE TO TICK BROADCAST
         subscribeBroadcast(TickBroadcast.class, (TickBroadcast)->{conferenceInformation.updateTick();
-            if(TickBroadcast.isFinish() == true)
+            if(TickBroadcast.isFinish())
                 terminate();
         if(conferenceInformation.getCurrentTick() == conferenceInformation.getDate()) {
             //SEND PUBLISH CONFERENCE BROADCAST
             sendBroadcast(new PublishConferenceBroadcast(conferenceInformation.getSuccessfulModels()));
             System.out.println("PUBLISH CONFERENCE BROADCAST SENT");
-            msb.unregister(this);
+            terminate();
         }
         });
 

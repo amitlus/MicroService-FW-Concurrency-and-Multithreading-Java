@@ -2,7 +2,6 @@ package bgu.spl.mics.application.objects;
 
 import bgu.spl.mics.Event;
 import bgu.spl.mics.Message;
-import bgu.spl.mics.MessageBus;
 import bgu.spl.mics.MessageBusImpl;
 import bgu.spl.mics.application.objects.Cluster;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -10,6 +9,7 @@ import java.util.Random;
 
 
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static bgu.spl.mics.application.objects.Model.Results.Bad;
 import static bgu.spl.mics.application.objects.Model.Results.Good;
@@ -67,10 +67,6 @@ public class GPU {
             vramSpace = 8;//8
             trainingTime = 4;
         }
-    }
-
-    public int getVramSpace() {
-        return vramSpace;
     }
 
     public void Test() {
@@ -174,7 +170,7 @@ public class GPU {
             if(startingTime == 0)
                 startingTime = currentTick;
 
-            GPUTimeUnits++;
+            ((AtomicInteger)Cluster.Statistics[3]).addAndGet(1);
 
             //CHECK IF WE FINISH TRAINING IT
             if (currentTick - startingTime == dataBatch.getTrainingTime()) {

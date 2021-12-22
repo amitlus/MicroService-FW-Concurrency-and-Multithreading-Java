@@ -1,8 +1,7 @@
 package bgu.spl.mics.application.services;
 
-import bgu.spl.mics.Broadcast;
 import bgu.spl.mics.MicroService;
-import bgu.spl.mics.application.CRMSRunner;
+import bgu.spl.mics.application.messages.TerminateTimeEvent;
 import bgu.spl.mics.application.messages.TickBroadcast;
 
 import java.util.Timer;
@@ -29,7 +28,7 @@ public class TimeService extends MicroService{
 	}
 
 	@Override
-	protected void initialize() {
+	protected void initialize() throws InterruptedException {
 		Timer timer = new Timer();
 		timer.scheduleAtFixedRate(new TimerTask(){
 			public void run(){
@@ -42,7 +41,8 @@ public class TimeService extends MicroService{
 						TickBroadcast b = new TickBroadcast();
 						b.setFinish(true);
 						sendBroadcast(b);
-						terminate();
+						sendEvent(new TerminateTimeEvent());
+						timer.cancel();
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -58,5 +58,10 @@ public class TimeService extends MicroService{
 
 			}
 		},0,tickTime);
+
+		subscribeEvent(TerminateTimeEvent.class, (TerminateTimeEvent)->{
+					terminate();});
+
 	}
-}
+	}
+

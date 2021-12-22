@@ -7,10 +7,7 @@ import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.TestModelEvent;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.messages.TrainModelEvent;
-import bgu.spl.mics.application.objects.Cluster;
-import bgu.spl.mics.application.objects.DataBatch;
-import bgu.spl.mics.application.objects.GPU;
-import bgu.spl.mics.application.objects.Model;
+import bgu.spl.mics.application.objects.*;
 
 import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
@@ -39,8 +36,11 @@ public class GPUService extends MicroService {
 
         //SUBSCRIBE TO TICK BROADCAST
         subscribeBroadcast(TickBroadcast.class, (TickBroadcast)->{gpu.updateTick();
-        if(TickBroadcast.isFinish() == true)
+        if(TickBroadcast.isFinish()) {
+            Cluster.terminateCPUS();
             terminate();
+        }
+
         if(gpu.isCounting) {
             if (!gpu.getProcessedDataList().isEmpty()) {
                 DataBatch currentDB = gpu.getProcessedDataList().peek();
@@ -70,18 +70,8 @@ public class GPUService extends MicroService {
                 if(gpu.isCounting)
                      gpu.sendDataBatch();
             }
-            if (gpu.isCounting == false)
+            if (!gpu.isCounting)
                 msb.complete(trainEvent, gpu.getModel().getStatus());
-
-            else {
-                gpu.sendDataBatch();
-                Message e;
-                while (!gpu.getFastMessages().isEmpty()) {
-                    e = gpu.getFastMessages().remove();
-                    Callback<Message> call = (Callback<Message>) this.getMsgToCalls().get(e.getClass());
-                    call.call(e);
-                }
-            }
         }
 
         else {

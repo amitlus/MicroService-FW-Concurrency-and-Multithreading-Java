@@ -5,7 +5,7 @@
        "Department": ""Computer Science"",
        "Status": "PhD",
           "Publications": 0,
-          "PapersRead": 0,
+          "PapersRead": 2,
           "TrainedModels": [
             ]
         },
@@ -14,7 +14,7 @@
        "Department": ""EE"",
        "Status": "PhD",
           "Publications": 0,
-          "PapersRead": 0,
+          "PapersRead": 2,
           "TrainedModels": [
             ]
         },
@@ -22,7 +22,7 @@
        "Name": ""Pumba"",
        "Department": ""Computer Science"",
        "Status": "PhD",
-          "Publications": 0,
+          "Publications": 2,
           "PapersRead": 0,
           "TrainedModels": [
             ]
@@ -32,7 +32,7 @@
        "Department": ""SE"",
        "Status": "PhD",
           "Publications": 0,
-          "PapersRead": 0,
+          "PapersRead": 2,
           "TrainedModels": [
             ]
         },
@@ -41,7 +41,7 @@
        "Department": ""Computer Science"",
        "Status": "PhD",
           "Publications": 0,
-          "PapersRead": 0,
+          "PapersRead": 2,
           "TrainedModels": [
             ]
         }
@@ -63,6 +63,15 @@
           "name": ""CVPR"",
           "date": 30000,
           "publications": [
+              {
+                  "name": ""GPT4"",
+                  "data": {
+                        "type": "Tabular",
+                        "size": 1000000
+                  },
+                  "status": "Tested",
+                  "results": "Good"
+              }
           ]
         },
         {
@@ -75,10 +84,19 @@
           "name": ""AISTATS"",
           "date": 50000,
           "publications": [
+              {
+                  "name": ""GPT5"",
+                  "data": {
+                        "type": "Tabular",
+                        "size": 200000
+                  },
+                  "status": "Tested",
+                  "results": "Good"
+              }
           ]
         }
     ],
-    "cpuTimeUsed":0,
-    "gpuTimeUsed":0,
-    "batchesProcessed":0
+    "cpuTimeUsed":24662,
+    "gpuTimeUsed":65719,
+    "batchesProcessed":15673
 }
