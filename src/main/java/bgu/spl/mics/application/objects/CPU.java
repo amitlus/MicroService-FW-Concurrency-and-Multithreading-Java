@@ -9,36 +9,18 @@ import java.util.Collection;
 public class CPU {
 
     private int cores;
-    private Collection<DataBatch> data;
     private Cluster cluster = Cluster.getInstance();
-    private DataBatch currentBatch;
     private boolean isCounting = false;
     private int processTime;
     private int currentTick;
 
-
-    int CPUTimeUnits;
-
     public CPU (int cores, Cluster cluster){
         this.cores = cores;
         this.cluster = cluster;
-        this.data = data;
     }
 
     public void setCounting(boolean counting) {
         isCounting = counting;
-    }
-
-    public int getCPUTimeUnits() {
-        return CPUTimeUnits;
-    }
-
-    public void setCPUTimeUnits(int CPUTimeUnits) {
-        this.CPUTimeUnits = CPUTimeUnits;
-    }
-
-    public int getCurrentTick() {
-        return currentTick;
     }
 
     public int getProcessTime() {
@@ -49,20 +31,12 @@ public class CPU {
         this.processTime = processTime;
     }
 
-    public DataBatch getCurrentBatch() {
-        return currentBatch;
-    }
-
     public boolean isCounting() {
         return isCounting;
     }
 
     public int getCores (){
         return cores;
-    }
-
-    public Collection<DataBatch> getData(){
-        return data;
     }
 
     public void updateTick() {

@@ -27,7 +27,6 @@ public class Cluster {
 		}
 	}
 
-
 	private static class SingletonHolder {
 		private static Cluster instance = new Cluster();
 	}
@@ -65,7 +64,6 @@ public class Cluster {
 	//SENDS BACK THE PROCESSED DATA BATCH TO ITS SOURCE GPU
 	public void sendProcessedDataBatch(GPU gpu, DataBatch dataBatch) throws InterruptedException {
 		((AtomicInteger)Statistics[1]).addAndGet(1);
-		//System.out.println(Statistics[1]);
 //		System.out.println("GPU'S dataProcessedList SIZE is "+gpu.processedDataList.size());
 		gpu.getProcessedDataList().add(dataBatch);
 //		System.out.println("GPU'S dataProcessedList SIZE is "+gpu.processedDataList.size());

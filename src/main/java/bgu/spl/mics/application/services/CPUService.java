@@ -17,6 +17,7 @@ public class CPUService extends MicroService {
     CPU cpu;
     DataBatch currentBatch;
     public static int finish = 0;
+
     public CPUService(String name, CPU cpu) {
         super(name);
         this.cpu = cpu;
@@ -73,7 +74,6 @@ public class CPUService extends MicroService {
     public void processCurrentBatch() throws InterruptedException {
         decreaseProcessTime();
         ((AtomicInteger)Cluster.Statistics[2]).addAndGet(1);
-        cpu.setCPUTimeUnits(cpu.getCPUTimeUnits()+1);
         if (cpu.getProcessTime() == 0) {
             sendDataBatch();
             cpu.setCounting(false);

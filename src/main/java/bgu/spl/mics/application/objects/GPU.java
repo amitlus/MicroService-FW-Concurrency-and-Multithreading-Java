@@ -1,14 +1,11 @@
 package bgu.spl.mics.application.objects;
 
-import bgu.spl.mics.Event;
 import bgu.spl.mics.Message;
 import bgu.spl.mics.MessageBusImpl;
-import bgu.spl.mics.application.objects.Cluster;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.Random;
 
 
-import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static bgu.spl.mics.application.objects.Model.Results.Bad;
@@ -40,7 +37,6 @@ public class GPU {
     private int vramSpace;
     private int currentTick;
     private int trainingTime;
-    int GPUTimeUnits;
     int startingTime;
 
 
@@ -108,9 +104,6 @@ public class GPU {
         return msb;
     }
 
-    public Cluster getCluster() {
-        return cluster;
-    }
 
     public LinkedBlockingQueue<DataBatch> getProcessedDataList(){
         return processedDataList;
