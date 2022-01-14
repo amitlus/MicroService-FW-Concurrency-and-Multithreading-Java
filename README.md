@@ -1,4 +1,4 @@
-# Assignment2-SPL
+# Java Concurrency and Multithreading
 My second project in SPL (system programing langueges) course in the 3rd semester in my Computer Science Degree.
 
 This project focused on the Concurrency element in programming.
