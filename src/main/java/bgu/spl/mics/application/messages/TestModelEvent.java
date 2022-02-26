@@ -4,5 +4,5 @@ import bgu.spl.mics.Event;
 
 public class TestModelEvent implements Event {
 
-    public TestModelEvent(){};
+    public TestModelEvent(){}
 }

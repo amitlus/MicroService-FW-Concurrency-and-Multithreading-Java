@@ -41,7 +41,6 @@ public abstract class MicroService implements Runnable {
     public MicroService(String name) {
         this.name = name;
         msb = MessageBusImpl.getInstance();
-
     }
 
 
@@ -69,7 +68,6 @@ public abstract class MicroService implements Runnable {
     protected final <T, E extends Event<T>> void subscribeEvent(Class<E> type, Callback<E> callback) throws InterruptedException {
         msgToCalls.putIfAbsent(type, callback);
         msb.subscribeEvent(type, this);
-        //notifyAll();
     }
 
     /**
@@ -110,10 +108,6 @@ public abstract class MicroService implements Runnable {
      * 	       			null in case no micro-service has subscribed to {@code e.getClass()}.
      */
     protected final <T> Future<T> sendEvent(Event<T> e) {
-        //If empty he waits (That's how LinkedBlockingQueue works)
-//        while(MessageBusImpl.getMessageToSubs().get(e) == null) {
-//            this.wait();
-//        }
         return msb.sendEvent(e);
     }
 

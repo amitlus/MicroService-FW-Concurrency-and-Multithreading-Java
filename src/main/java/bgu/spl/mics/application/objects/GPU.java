@@ -4,10 +4,7 @@ import bgu.spl.mics.Message;
 import bgu.spl.mics.MessageBusImpl;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.Random;
-
-
 import java.util.concurrent.atomic.AtomicInteger;
-
 import static bgu.spl.mics.application.objects.Model.Results.Bad;
 import static bgu.spl.mics.application.objects.Model.Results.Good;
 
@@ -25,10 +22,8 @@ public class GPU {
     LinkedBlockingQueue<DataBatch> unprocessedDataList;
     LinkedBlockingQueue<DataBatch> processedDataList;
     LinkedBlockingQueue<DataBatch> TrainedDataList;
-
     LinkedBlockingQueue<Message> fastMessages;
     LinkedBlockingQueue<Message> trainEvents;
-
 
     private Type type;
     private Model model;
@@ -39,8 +34,7 @@ public class GPU {
     private int trainingTime;
     int startingTime;
 
-
-    public boolean isCounting =  false;
+    public boolean isCounting = false;
 
     public GPU(Type type, Cluster cluster) {
         unprocessedDataList = new LinkedBlockingQueue<DataBatch>();
@@ -70,13 +64,13 @@ public class GPU {
         int rand_int = rand.nextInt(10);
 
         if(model.getStudent().getStatus() == Student.Degree.MSc){
-            if(rand_int >= 0 && rand_int <= 5)
+            if(rand_int <= 5)
                 model.setResult(Good);
             else
                 model.setResult(Bad);
         }
         else {
-            if (rand_int >= 0 && rand_int <= 7)
+            if (rand_int <= 7)
                 model.setResult(Good);
             else
                 model.setResult(Bad);
@@ -125,16 +119,13 @@ public class GPU {
     //SENDING UNPROCESSED DATA BATCHES TO THE CLUSTER
     //WHEN SENDING WE AUTOMATICALLY UPDATE THE VRAM SIZE, THIS WAY WE ENSURE THAT THERE WILL BE SPACE
     //FOR THE PROCESSED BATCH TO RETURN
-    public void sendDataBatch() throws InterruptedException {
+    public void sendDataBatch() {
         while (!unprocessedDataList.isEmpty() & vramSpace > 0) {
-//            System.out.println("GPU " + unprocessedDataList.peek().getSource().getType() + " sent UNPROCESSED DB " + model.getName());
             DataBatch dataBatch = unprocessedDataList.poll();
             vramSpace--;
-            cluster.getDataToProcessList().add(dataBatch);
-//            System.out.println("CLUSTER'S DataToProcessList SIZE is " + cluster.getDataToProcessList().size());
+            Cluster.getDataToProcessList().add(dataBatch);
         }
     }
-
 
 
     //MAKE A LIST OF DATA BATCHES FROM THE DATA
@@ -156,9 +147,7 @@ public class GPU {
     }
 
 
-
         public void trainDataBatch(DataBatch dataBatch) {
-//            System.out.println("GPU started TRAINING and the TIME LEFT is "+dataBatch.trainingTime);
             //CHECK IF WE JUST START TRAINING THE CURRENT DATA BUTCH
             if(startingTime == 0)
                 startingTime = currentTick;
@@ -172,7 +161,6 @@ public class GPU {
                //NOW WE CAN SEND ANOTHER DATA BATCH TO THE CLUSTER
                 vramSpace++;
                 startingTime = 0;
-//                System.out.println("GPU "+getType()+" FINISHED TRAINING DB");
             }
         }
 
@@ -195,5 +183,5 @@ public class GPU {
         this.model = model;
     }
 
-    }
+}
 

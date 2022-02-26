@@ -1,7 +1,5 @@
 package bgu.spl.mics.application.objects;
 
-import bgu.spl.mics.MicroService;
-import bgu.spl.mics.application.services.StudentService;
 import java.util.ArrayList;
 
 
@@ -64,13 +62,13 @@ public class Student {
         this.status = status;
     }
 
-    public void setPublications(int publications){
-        this.publications = publications;
-    }
-
-    public void setPapersRead(int papersRead){
-        this.papersRead = papersRead;
-    }
+//    public void setPublications(int publications){
+//        this.publications = publications;
+//    }
+//
+//    public void setPapersRead(int papersRead){
+//        this.papersRead = papersRead;
+//    }
 
     public ArrayList<Model> getListOfModels(){
         return listOfModels;

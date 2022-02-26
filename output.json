@@ -5,7 +5,7 @@
        "Department": ""Computer Science"",
        "Status": "PhD",
           "Publications": 0,
-          "PapersRead": 2,
+          "PapersRead": 0,
           "TrainedModels": [
             ]
         },
@@ -14,7 +14,7 @@
        "Department": ""EE"",
        "Status": "PhD",
           "Publications": 0,
-          "PapersRead": 2,
+          "PapersRead": 0,
           "TrainedModels": [
             ]
         },
@@ -23,7 +23,7 @@
        "Department": ""Computer Science"",
        "Status": "PhD",
           "Publications": 0,
-          "PapersRead": 2,
+          "PapersRead": 0,
           "TrainedModels": [
             ]
         },
@@ -31,8 +31,8 @@
        "Name": ""Timon"",
        "Department": ""SE"",
        "Status": "PhD",
-          "Publications": 1,
-          "PapersRead": 1,
+          "Publications": 0,
+          "PapersRead": 0,
           "TrainedModels": [
             ]
         },
@@ -40,8 +40,8 @@
        "Name": ""Nala"",
        "Department": ""Computer Science"",
        "Status": "PhD",
-          "Publications": 1,
-          "PapersRead": 1,
+          "Publications": 0,
+          "PapersRead": 0,
           "TrainedModels": [
             ]
         }
@@ -63,6 +63,15 @@
           "name": ""CVPR"",
           "date": 30000,
           "publications": [
+              {
+                  "name": ""Percepetron"",
+                  "data": {
+                        "type": "Tabular",
+                        "size": 1000000
+                  },
+                  "status": "Tested",
+                  "results": "Good"
+              }
           ]
         },
         {
@@ -70,10 +79,10 @@
           "date": 40000,
           "publications": [
               {
-                  "name": ""GNN"",
+                  "name": ""MuchMoreEfficientNet"",
                   "data": {
                         "type": "Tabular",
-                        "size": 1000000
+                        "size": 20000
                   },
                   "status": "Tested",
                   "results": "Good"
@@ -96,7 +105,7 @@
           ]
         }
     ],
-    "cpuTimeUsed":38546,
-    "gpuTimeUsed":72745,
-    "batchesProcessed":24597
+    "cpuTimeUsed":8657,
+    "gpuTimeUsed":16088,
+    "batchesProcessed":5539
 }

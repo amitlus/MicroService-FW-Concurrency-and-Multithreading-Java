@@ -1,9 +1,7 @@
 package bgu.spl.mics.application.objects;
-import bgu.spl.mics.application.services.CPUService;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -20,12 +18,6 @@ public class Cluster {
 	private ArrayList<GPU> GPUArray;
 	private static ArrayList<CPU> CPUArray;
 	public static Object[] Statistics = new Object[4];
-
-	public static void terminateCPUS() {
-		for (int i =0; i< CPUArray.size(); i++){
-			dataToProcess.add(new DataBatch(null ,0, null, 0, 0));
-		}
-	}
 
 	private static class SingletonHolder {
 		private static Cluster instance = new Cluster();
@@ -62,11 +54,13 @@ public class Cluster {
 
 
 	//SENDS BACK THE PROCESSED DATA BATCH TO ITS SOURCE GPU
-	public void sendProcessedDataBatch(GPU gpu, DataBatch dataBatch) throws InterruptedException {
+	public void sendProcessedDataBatch(GPU gpu, DataBatch dataBatch){
 		((AtomicInteger)Statistics[1]).addAndGet(1);
-//		System.out.println("GPU'S dataProcessedList SIZE is "+gpu.processedDataList.size());
 		gpu.getProcessedDataList().add(dataBatch);
-//		System.out.println("GPU'S dataProcessedList SIZE is "+gpu.processedDataList.size());
+	}
 
+	public static void terminateCPUS() {
+		for (int i =0; i< CPUArray.size(); i++)
+			dataToProcess.add(new DataBatch(null ,0, null, 0, 0));
 	}
 }

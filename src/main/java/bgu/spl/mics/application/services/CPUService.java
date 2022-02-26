@@ -21,7 +21,6 @@ public class CPUService extends MicroService {
     public CPUService(String name, CPU cpu) {
         super(name);
         this.cpu = cpu;
-        this.currentBatch = currentBatch;
     }
 
     //ONLY NEED TO UPDATE THE TIME FOR THE CPU
@@ -29,11 +28,12 @@ public class CPUService extends MicroService {
     protected void initialize() {
         //SUBSCRIBE TO TICK BROADCAST
         subscribeBroadcast(TickBroadcast.class, (TickBroadcast)->{cpu.updateTick();
-            if(TickBroadcast.isFinish()) {
+            if(TickBroadcast.isFinish())
                 terminate();
-            }
+
         if(cpu.isCounting())
             processCurrentBatch();
+
         //AFTER WE FINISH TO PROCESS 1 BATCH, TRY TO TAKE ANOTHER BATCH WITHOUT WAITING FOR ANOTHER TICK
         if(!cpu.isCounting())
             getUnprocessedDataBatch();
@@ -45,12 +45,9 @@ public class CPUService extends MicroService {
         try {
             currentBatch = Cluster.getDataToProcessList().take();
 
-        } catch (InterruptedException e) {
-        }
+        } catch (InterruptedException e) {}
 
-//        System.out.println("CPU received DB from " +currentBatch.getSource().getType());
-//        System.out.println("CLUSTER'S dataToProcessList SIZE is "+cluster.getDataToProcessList().size());
-
+        //IT'S A SIGN TO TERMINATE THE CPUService THAT WE MADE
         if (currentBatch.getData() == null)
             terminate();
 
@@ -66,8 +63,7 @@ public class CPUService extends MicroService {
         }
     }
 
-    public void sendDataBatch() throws InterruptedException {
-//            System.out.println("CPU sent PROCESSED db "+currentBatch.getSource().getModel().getName());
+    public void sendDataBatch() {
         Cluster.getInstance().sendProcessedDataBatch(currentBatch.getSource(), currentBatch);
     }
 

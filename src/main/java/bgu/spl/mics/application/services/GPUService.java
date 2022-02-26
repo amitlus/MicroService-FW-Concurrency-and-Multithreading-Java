@@ -1,9 +1,6 @@
 package bgu.spl.mics.application.services;
 
-import bgu.spl.mics.Callback;
-import bgu.spl.mics.Event;
-import bgu.spl.mics.Message;
-import bgu.spl.mics.MicroService;
+import bgu.spl.mics.*;
 import bgu.spl.mics.application.messages.TestModelEvent;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.messages.TrainModelEvent;
@@ -31,12 +28,14 @@ public class GPUService extends MicroService {
         trainEvent = null;
     }
 
-
     protected void initialize() throws InterruptedException {
 
         //SUBSCRIBE TO TICK BROADCAST
         subscribeBroadcast(TickBroadcast.class, (TickBroadcast)->{gpu.updateTick();
         if(TickBroadcast.isFinish()) {
+            //WE TELL THE CLUSTER TO RUN THE FOLLOWING METHOD IN ORDER TO LET THE CPUService IT'S TIME/
+            //TO TERMINATE. THE CLUSTER COULD MISS IT IF WE DIDN'T DO IT, BECAUSE THERE IS A CHANCE
+            //IT ISN'T GETTING ANY TERMINATE-TIME-EVENT BECAUSE IT'S WAITING ON "TAKE"
             Cluster.terminateCPUS();
             terminate();
         }
@@ -44,16 +43,15 @@ public class GPUService extends MicroService {
         if(gpu.isCounting) {
             if (!gpu.getProcessedDataList().isEmpty()) {
                 DataBatch currentDB = gpu.getProcessedDataList().peek();
-                if (currentDB.getTrainingTime() > 0) {
+                if(currentDB.getTrainingTime() > 0) {
                     gpu.trainDataBatch(currentDB);
-//                    System.out.println("Batch TRAINED. Send DB TO PROCESS");
                 }
 
                 //AFTER WE FINISH TRAINING A DATA BATCH, WE REMOVE IT FROM THE PROCESSED LIST AND ADD IT TO THE TRAINED LIST
                 if (currentDB.getTrainingTime() == 0) {
                     gpu.getTrainedDataList().add(gpu.getProcessedDataList().remove());
 
-                    //AFTER WE FINISH TRAINING A DATA BATCH, WE CHECK IF WE FINISHED TRAINING ALL THE MODEL'S DATA BATCHES
+                    //CHECK IF WE FINISHED TRAINING ALL THE MODEL'S DATA BATCHES
                     if (gpu.getTrainedDataList().size() == currentDB.getDataParts()) {
                         //UPDATE THE LIST OF TRAINED DATA IN THE CLUSTER'S STATISTICS
                         ArrayList<String> stat = (ArrayList<String>) Cluster.Statistics[0];
@@ -74,6 +72,7 @@ public class GPUService extends MicroService {
                 msb.complete(trainEvent, gpu.getModel().getStatus());
         }
 
+        //IF WE ARE NOT IN THE MIDDLE OF A COUNTING, WE EXECUTE THE "FAST" EVENTS AND BROADCASTS
         else {
             Message e = null;
             synchronized (gpu.getFastMessages()) {
@@ -83,29 +82,28 @@ public class GPUService extends MicroService {
                     call.call(e);
                 }
             }
+            //TRAINING THE NEXT MODEL IF THERE IS AN TRAIN MODEL EVENT
             synchronized (gpu.getTrainEvents()) {
-                if (!gpu.getTrainEvents().isEmpty()) {
-                    e = (Event<TrainModelEvent>) gpu.getTrainEvents().remove();
-                }
+                if (!gpu.getTrainEvents().isEmpty())
+                    e = gpu.getTrainEvents().remove();
             }
             if (e != null) {
                 Callback<Message> call = (Callback<Message>) this.getMsgToCalls().get(e.getClass());
                 call.call(e);
             }
-        }
-        }
-        );
+        }});
 
 
         //SUBSCRIBE TO TRAIN EVENTS
         subscribeEvent(TrainModelEvent.class, (TrainModelEvent)-> {
             if(gpu.isCounting)
                 gpu.getTrainEvents().add(TrainModelEvent);
+
             else{
                 trainEvent = TrainModelEvent;
             gpu.setModel(TrainModelEvent.model);
             gpu.setCounting(true);
-            BlockingQueue<Message> queue = gpu.getMsb().getMicroToMsg().get(this);
+            BlockingQueue<Message> queue = MessageBusImpl.getMicroToMsg().get(this);
             try {
                 while (queue.peek().getClass() != TickBroadcast.class) {
                     if (queue.peek().getClass() == TrainModelEvent.getClass())

@@ -23,6 +23,7 @@ public class StudentService extends MicroService {
     Student student;
     ArrayList<Model> listOfModels;
     boolean notNull = false;
+
     public StudentService(String name, Student student) {
         super(name);
         this.student = student;
@@ -32,7 +33,7 @@ public class StudentService extends MicroService {
     @Override
     protected void initialize() {
 
-        //WE WANT TO ENSURE THAT ALL THE GPUS SUBSCRIBED TO TRAIN MODEL EVENT BEFORE WE START
+        //WE WANT TO ENSURE THAT ALL THE GPUS ALREADY SUBSCRIBED TO TRAIN MODEL EVENT BEFORE WE START
         int size = 0;
         while(!notNull)
             try{
@@ -52,17 +53,16 @@ public class StudentService extends MicroService {
                 listOfModels.get(0).setStatus(Model.Status.Training);
                 System.out.println("NEW MODEL "+listOfModels.get(0).getName()+" SENT by "+student.getName());
                 sendEvent(new TrainModelEvent(listOfModels.get(0)));
-
             }
 
-                //SEND TEST MODEL EVENT
+            //SEND TEST MODEL EVENT
             else if(student.listOfModels.get(0).getStatus()== Model.Status.Trained) {
                 System.out.println("TEST EVENT OF "+listOfModels.get(0).getName()+" SENT");
                 sendEvent(new TestModelEvent());
                 student.listOfModels.get(0).setStatus(Model.Status.Tested);
-
             }
-                //SEND PUBLISH RESULT EVENT
+
+            //SEND PUBLISH RESULT EVENT
             else if(student.listOfModels.get(0).getStatus()== Model.Status.Tested) {
                 if(listOfModels.get(0).getResult() == Model.Results.Good) {
                     System.out.println("PUBLISH RESULT OF "+listOfModels.get(0).getName()+" SENT");
@@ -77,7 +77,7 @@ public class StudentService extends MicroService {
 
 
         //SUBSCRIBE TO PUBLISH CONFERENCE BROADCAST
-        subscribeBroadcast(PublishConferenceBroadcast.class, (PublishConferenceBroadcast)->{student.updateStudentResume(PublishConferenceBroadcast.getSucessfullModels());
+        subscribeBroadcast(PublishConferenceBroadcast.class, (PublishConferenceBroadcast)->{student.updateStudentResume(PublishConferenceBroadcast.getSuccessfulModels());
         });
 
     }

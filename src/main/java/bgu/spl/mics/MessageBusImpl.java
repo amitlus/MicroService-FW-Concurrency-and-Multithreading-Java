@@ -1,6 +1,4 @@
 package bgu.spl.mics;
-import bgu.spl.mics.application.messages.TickBroadcast;
-import bgu.spl.mics.application.services.StudentService;
 import bgu.spl.mics.example.messages.ExampleEvent;
 
 import java.util.Iterator;
@@ -68,23 +66,19 @@ public class MessageBusImpl implements MessageBus {
 	//BACK AND FIX THIS
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
 		if(!messageToSubs.containsKey(type))
-			messageToSubs.putIfAbsent(type, new LinkedBlockingQueue<MicroService>());
-
+			messageToSubs.putIfAbsent(type, new LinkedBlockingQueue<MicroService>()); //putIfAbsent is an atomic method
 		messageToSubs.get(type).add(m);
 	}
-
 
 	/**
 	 * @pre: none
 	 * @post: isSubscribedToBroadcast(@ param type, @ param m) == true
 	 */
 
-	//BACK AND FIX THIS
 	public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) {
 		synchronized (messageToSubs) {
 			if (!messageToSubs.containsKey(type))
 				messageToSubs.putIfAbsent(type, new LinkedBlockingQueue<MicroService>());
-
 			messageToSubs.get(type).add(m);
 		}
 	}
@@ -93,8 +87,9 @@ public class MessageBusImpl implements MessageBus {
 	 * @pre: none
 	 * @post: getFuture(@ param e).get() == @param result
 	 */
+
 	@Override
-	public synchronized  <T> void complete(Event<T> e, T result) {
+	public synchronized <T> void complete(Event<T> e, T result) {
 
 		synchronized (eventToFuture) {
 			if (eventToFuture.containsKey(e))
@@ -114,7 +109,6 @@ public class MessageBusImpl implements MessageBus {
 		return false;
 	}
 
-
 	/**
 	 * @pre: none
 	 * @post: for each microService m (isSubscribedToBroadcast(@param b.getClass(), m) == true)
@@ -122,11 +116,10 @@ public class MessageBusImpl implements MessageBus {
 	 */
 
 	public void sendBroadcast(Broadcast b) {
-		synchronized (messageToSubs){
 			if(messageToSubs.get(b.getClass()) == null)
 				return;
 			BlockingQueue<MicroService> q = messageToSubs.get(b.getClass());//If empty he waits (That's how LinkedBlockingQueue works)
-			synchronized (q) {
+//			synchronized (q) {
 				try {
 					Iterator<MicroService> iter = q.iterator();
 					while (iter.hasNext())
@@ -137,9 +130,7 @@ public class MessageBusImpl implements MessageBus {
 					npe.printStackTrace();
 				}
 			}
-		}
-	}
-
+//		}
 
 	/**
 	 * @pre: none
@@ -158,10 +149,9 @@ public class MessageBusImpl implements MessageBus {
 
 	//It's already thread safe because the data structure is thread-safe
 	public <T> Future<T> sendEvent(Event<T> e) {
-
 		//Check existence of handlers queue of the Event type
 		//Checking if there is a microservice who can process the event
-			if (( !messageToSubs.containsKey(e.getClass()))  || messageToSubs.get(e.getClass())==null || (messageToSubs.get(e.getClass()).isEmpty()))
+			if ((!messageToSubs.containsKey(e.getClass()))  || messageToSubs.get(e.getClass())==null || (messageToSubs.get(e.getClass()).isEmpty()))
 				return null;
 			else {
 				Future<T> future = new Future<T>();
@@ -175,14 +165,13 @@ public class MessageBusImpl implements MessageBus {
 				messageToSubs.get(e.getClass()).add(handler);
 				return future;
 			}
-		}
-
-
+	}
 
 	/**
 	 * @pre: none
 	 * @post:
 	 */
+
 	public boolean isEventSent(Event e) {
 		// TODO Auto-generated method stub
 		return false;
@@ -192,6 +181,7 @@ public class MessageBusImpl implements MessageBus {
 	 * @pre: isRegistered(@ param m) == false
 	 * @post: isRegistered(@ param m) == true
 	 */
+
 	@Override
 	public void register(MicroService m) {
 		BlockingQueue<Message> q = new LinkedBlockingQueue<Message>();
@@ -224,7 +214,7 @@ public class MessageBusImpl implements MessageBus {
 		for (Map.Entry mapElement : messageToSubs.entrySet()) {
 			Iterator<MicroService> listOfMicroServices = ((LinkedBlockingQueue) mapElement.getValue()).iterator();
 			boolean removed = false;
-			MicroService check = null;
+			MicroService check;
 			while (listOfMicroServices.hasNext() && !removed) {
 				check = listOfMicroServices.next();
 				if (check == m) {
@@ -234,10 +224,9 @@ public class MessageBusImpl implements MessageBus {
 			}
 		}
 	}
-		// TODO Auto-generated method stub
 
 
-
+	// TODO Auto-generated method stub
 	/**
 	 * @pre:
 	 * @post:
@@ -255,9 +244,6 @@ public class MessageBusImpl implements MessageBus {
 			return microToMsg.get(m).take();
 		else
 			throw new IllegalArgumentException("m not registered");
-
-}
-
-
+	}
 }
 

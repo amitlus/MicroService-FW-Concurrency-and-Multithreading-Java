@@ -36,7 +36,6 @@ public class TimeService extends MicroService{
 				if(currentTime == duration)
 					//SEND TERMINATE BROADCAST
 				{
-
 					try {
 						TickBroadcast b = new TickBroadcast();
 						b.setFinish(true);
