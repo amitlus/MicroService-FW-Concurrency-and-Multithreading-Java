@@ -75,7 +75,6 @@ public class StudentService extends MicroService {
          }});
 
 
-
         //SUBSCRIBE TO PUBLISH CONFERENCE BROADCAST
         subscribeBroadcast(PublishConferenceBroadcast.class, (PublishConferenceBroadcast)->{student.updateStudentResume(PublishConferenceBroadcast.getSuccessfulModels());
         });

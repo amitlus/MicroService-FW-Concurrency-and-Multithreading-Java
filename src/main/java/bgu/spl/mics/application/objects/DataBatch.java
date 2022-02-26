@@ -7,22 +7,16 @@ package bgu.spl.mics.application.objects;
 
 public class DataBatch {
     Data data;
-//    int start_index;
     GPU source;
     int dataParts;
     int trainingTime;
 
     public DataBatch(Data data, int start_index, GPU source, int dataParts, int trainingTime){
         this.data = data;
-//        this.start_index = start_index;
         this.dataParts = dataParts;
         this.trainingTime = trainingTime;
         this.source = source;
     }
-
-//    public void decreaseTrainingTimeLeft(){
-//        trainingTime--;
-//    }
 
     public int getTrainingTime(){
         return trainingTime;
@@ -39,9 +33,5 @@ public class DataBatch {
     public GPU getSource(){
         return source;
     }
-
-//    public int getStart_index(){
-//        return start_index;
-//    }
     
 }
